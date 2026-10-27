@@ -1,0 +1,14 @@
+# Contexto de build dos Dockerfiles em infra/docker/ é a raiz do monorepo (`COPY . .`).
+# Sem este arquivo, o node_modules local entra no contexto — centenas de MB e, pior,
+# binários do sistema operacional do host (ex.: turbo do Windows), que quebram o
+# `npx turbo prune` dentro do container Linux. O container instala as próprias dependências.
+**/node_modules
+**/dist
+**/.angular
+**/.turbo
+.git
+
+# Variáveis locais nunca entram numa imagem.
+.env
+.env.*
+!.env.example
