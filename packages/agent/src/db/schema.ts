@@ -51,3 +51,27 @@ export const documentos = pgTable(
     index('documentos_embedding_idx').using('hnsw', table.embedding.op('vector_cosine_ops')),
   ],
 );
+
+// Trechos de páginas da web trazidos pelo nó webSearch. Tabela separada do corpus porque o
+// formato é outro (texto livre, sem ticker nem trimestre) e porque expira: notícia velha não
+// pode competir com dado novo para sempre.
+export const documentosWeb = pgTable(
+  'documentos_web',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    // A busca que trouxe esta página — útil pra auditar por que ela entrou na base.
+    query: text('query').notNull(),
+    title: text('title').notNull(),
+    // Um chunk da página, não a página inteira.
+    content: text('content').notNull(),
+    sourceUrl: text('source_url').notNull(),
+    fetchedAt: timestamp('fetched_at', { withTimezone: true }).notNull(),
+    // Depois desta data o trecho deixa de ser recuperado pela busca por similaridade.
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    // Sempre preenchido: o trecho só é salvo depois que o embedding foi gerado.
+    embedding: vector('embedding', { dimensions: EMBEDDING_DIMENSIONS }).notNull(),
+  },
+  (table) => [
+    index('documentos_web_embedding_idx').using('hnsw', table.embedding.op('vector_cosine_ops')),
+  ],
+);
