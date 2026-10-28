@@ -10,6 +10,7 @@ export { makeRetrieveNode } from './nodes/retrieve.js';
 export type { Buscar, EmbeddingsClient, RetrieveState } from './nodes/retrieve.js';
 export { salvarDocumentosWeb } from './db/save-web-documents.js';
 export type { NovoDocumentoWeb } from './db/save-web-documents.js';
+export type { DocumentoCorpus, DocumentoWeb } from './db/retrieve-similar.js';
 export { makeWebSearchNode } from './nodes/web-search.js';
 export type {
   BuscarPagina,
