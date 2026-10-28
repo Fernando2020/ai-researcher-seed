@@ -12,6 +12,7 @@
     "test": "vitest run",
     "lint": "eslint src",
     "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx --env-file-if-exists=../../.env src/db/migrate.ts",
     "seed": "tsx --env-file-if-exists=../../.env src/seed/run.ts"
   },
   "dependencies": {
