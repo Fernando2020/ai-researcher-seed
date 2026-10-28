@@ -19,5 +19,11 @@ export type {
   WebSearchDeps,
   WebSearchState,
 } from './nodes/web-search.js';
-export type { SearchProvider, SearchResult } from './search/search-provider.js';
+export {
+  criarSearchProvider,
+  makeGoogleCustomSearchProvider,
+  makeSerperProvider,
+  SearchProviderError,
+} from './search/index.js';
+export type { SearchProvider, SearchResult } from './search/index.js';
 export { buscarHtml } from './web/fetch-html.js';
