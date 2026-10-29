@@ -32,3 +32,5 @@ export type { GraphDeps, ResearchStateType } from './graph.js';
 export { makeAnswerNode } from './nodes/answer.js';
 export type { AnswerLlmClient, AnswerState } from './nodes/answer.js';
 export { AVISO_GUARDRAIL, contemRecomendacao, formatarResposta } from './answer/format-resposta.js';
+export { criarGrafoReal } from './criar-grafo.js';
+export { criarChatModelReal } from './llm.js';
