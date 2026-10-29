@@ -1,13 +1,5 @@
 import type { RetrievedDoc } from '../db/retrieve-similar.js';
-
-// Cada documento é rotulado pela origem: o LLM precisa saber o que é indicador da CVM e o que
-// é trecho de página da web, porque só o segundo pode responder pergunta qualitativa.
-function formatarDocumento(doc: RetrievedDoc): string {
-  if (doc.origem === 'cvm') {
-    return `- [CVM ${doc.ticker} ${doc.period}] ${doc.paragraph}`;
-  }
-  return `- [WEB "${doc.title}" ${doc.sourceUrl}] ${doc.content}`;
-}
+import { formatarContexto } from './contexto.js';
 
 export function gradePrompt({
   question,
@@ -16,12 +8,10 @@ export function gradePrompt({
   question: string;
   documents: RetrievedDoc[];
 }): string {
-  const contexto = documents.map(formatarDocumento).join('\n');
-
   return `Você avalia se o contexto abaixo é suficiente pra responder a pergunta do usuário.
 
 Contexto recuperado:
-${contexto || '(nenhum documento encontrado)'}
+${formatarContexto(documents)}
 
 Pergunta: ${question}
 
