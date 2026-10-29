@@ -35,6 +35,7 @@ function montarDeps(classificacoes: GradeFake[]) {
     },
     buscarPagina: vi.fn().mockResolvedValue('<p>Conteúdo da página</p>'),
     salvarDocumentosWeb: vi.fn().mockResolvedValue(undefined),
+    answerLlm: { invoke: vi.fn().mockResolvedValue({ text: 'Resposta do fake.' }) },
   } satisfies GraphDeps;
 
   return { deps, gradeInvoke: invoke };
@@ -52,21 +53,21 @@ async function nosVisitados(deps: GraphDeps, question: string): Promise<string[]
 }
 
 describe('buildGraph', () => {
-  it('termina direto quando o grade considera suficiente na primeira rodada', async () => {
+  it('vai direto pro answer quando o grade considera suficiente na primeira rodada', async () => {
     const { deps } = montarDeps([SUFICIENTE]);
 
     const caminho = await nosVisitados(deps, 'Qual a receita da Vale no 3T25?');
 
-    expect(caminho).toEqual(['retrieve', 'grade']);
+    expect(caminho).toEqual(['retrieve', 'grade', 'answer']);
     expect(deps.searchProvider.search).not.toHaveBeenCalled();
   });
 
-  it('faz o loop completo quando insuficiente, e termina quando a web resolve', async () => {
+  it('faz o loop completo quando insuficiente, e responde quando a web resolve', async () => {
     const { deps } = montarDeps([INSUFICIENTE, SUFICIENTE]);
 
     const caminho = await nosVisitados(deps, 'Por que a receita da Vale caiu?');
 
-    expect(caminho).toEqual(['retrieve', 'grade', 'webSearch', 'retrieve', 'grade']);
+    expect(caminho).toEqual(['retrieve', 'grade', 'webSearch', 'retrieve', 'grade', 'answer']);
     // O webSearch recebeu os aspectos faltantes que o grade produziu.
     expect(deps.searchProvider.search).toHaveBeenCalledWith(
       'Por que a receita da Vale caiu? notícias recentes',
@@ -81,8 +82,9 @@ describe('buildGraph', () => {
 
     expect(caminho.filter((no) => no === 'grade')).toHaveLength(MAX_ITERATIONS);
     expect(gradeInvoke).toHaveBeenCalledTimes(MAX_ITERATIONS);
-    // Termina no grade: depois da última rodada não há outra busca na web.
-    expect(caminho.at(-1)).toBe('grade');
+    // Depois da última rodada não há outra busca na web: vai pro answer com contexto parcial.
+    expect(caminho.slice(-2)).toEqual(['grade', 'answer']);
+    expect(caminho.filter((no) => no === 'webSearch')).toHaveLength(MAX_ITERATIONS - 1);
   });
 
   it('soma iterations pelo reducer: o estado final tem uma por rodada de grade', async () => {
@@ -92,5 +94,8 @@ describe('buildGraph', () => {
 
     expect(final.iterations).toBe(MAX_ITERATIONS);
     expect(final.sufficient).toBe(false);
+    // O answer recebeu sufficient=false e o prompt avisa o contexto incompleto.
+    expect(deps.answerLlm.invoke).toHaveBeenCalledWith(expect.stringContaining('incompleto'));
+    expect(final.response).toContain('Resposta do fake.');
   });
 });

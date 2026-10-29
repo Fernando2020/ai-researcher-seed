@@ -1,6 +1,8 @@
 import { Annotation, END, START, StateGraph } from '@langchain/langgraph';
 
 import type { RetrievedDoc } from './db/retrieve-similar.js';
+import { makeAnswerNode } from './nodes/answer.js';
+import type { AnswerLlmClient } from './nodes/answer.js';
 import { makeGradeNode } from './nodes/grade.js';
 import type { GradeLlmClient } from './nodes/grade.js';
 import { makeRetrieveNode } from './nodes/retrieve.js';
@@ -13,8 +15,9 @@ import type {
 } from './nodes/web-search.js';
 import type { SearchProvider } from './search/search-provider.js';
 
-// Quantas vezes o grade pode rodar. Na segunda resposta "insuficiente", o grafo termina mesmo
-// assim — estourar o limite não é erro, é resposta com menos confiança.
+// Quantas vezes o grade pode rodar. Na segunda resposta "insuficiente", o grafo vai pro answer
+// mesmo assim — estourar o limite não é erro, é resposta com menos confiança, e o answer avisa
+// o usuário que o contexto está incompleto.
 export const MAX_ITERATIONS = 2;
 
 // O estado é o contrato entre os nós: cada nó lê o que precisa e devolve só o que mudou.
@@ -39,6 +42,12 @@ export const ResearchState = Annotation.Root({
     reducer: (anterior, novo) => anterior + novo,
     default: () => 0,
   }),
+  // Texto final pro usuário, já filtrado pelo guardrail e com o bloco de fontes. O nome não
+  // pode ser `answer`: o LangGraph não aceita campo do estado com o mesmo nome de um nó.
+  response: Annotation<string>({
+    reducer: (_anterior, novo) => novo,
+    default: () => '',
+  }),
 });
 
 export type ResearchStateType = typeof ResearchState.State;
@@ -53,12 +62,13 @@ export interface GraphDeps {
   searchProvider: SearchProvider;
   buscarPagina: BuscarPagina;
   salvarDocumentosWeb: SalvarDocumentosWeb;
+  answerLlm: AnswerLlmClient;
 }
 
 // A decisão de rota vive aqui, não dentro do grade: o nó só produz o dado, a aresta lê.
-export function decidirAposGrade(state: ResearchStateType): 'webSearch' | typeof END {
-  if (state.sufficient) return END;
-  if (state.iterations >= MAX_ITERATIONS) return END;
+export function decidirAposGrade(state: ResearchStateType): 'webSearch' | 'answer' {
+  if (state.sufficient) return 'answer';
+  if (state.iterations >= MAX_ITERATIONS) return 'answer';
   return 'webSearch';
 }
 
@@ -76,12 +86,14 @@ export function buildGraph(deps: GraphDeps) {
           salvar: deps.salvarDocumentosWeb,
         }),
       )
+      .addNode('answer', makeAnswerNode(deps.answerLlm))
       .addEdge(START, 'retrieve')
       .addEdge('retrieve', 'grade')
-      .addConditionalEdges('grade', decidirAposGrade, ['webSearch', END])
+      .addConditionalEdges('grade', decidirAposGrade, ['webSearch', 'answer'])
       // Depois de buscar na web, volta a recuperar: os trechos novos já estão no banco e
       // competem pela distância com o corpus CVM.
       .addEdge('webSearch', 'retrieve')
+      .addEdge('answer', END)
       .compile()
   );
 }
