@@ -29,3 +29,6 @@ export type { SearchProvider, SearchResult } from './search/index.js';
 export { buscarHtml } from './web/fetch-html.js';
 export { buildGraph, decidirAposGrade, MAX_ITERATIONS, ResearchState } from './graph.js';
 export type { GraphDeps, ResearchStateType } from './graph.js';
+export { makeAnswerNode } from './nodes/answer.js';
+export type { AnswerLlmClient, AnswerState } from './nodes/answer.js';
+export { AVISO_GUARDRAIL, contemRecomendacao, formatarResposta } from './answer/format-resposta.js';
