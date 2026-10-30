@@ -1,5 +1,5 @@
 import type { NovoDocumentoWeb } from '../db/save-web-documents.js';
-import type { SearchProvider } from '../search/search-provider.js';
+import type { SearchProvider, SearchResult } from '../search/search-provider.js';
 import { emLotes } from '../seed/lotes.js';
 import { dividirEmChunks } from '../web/chunk.js';
 import { extrairTexto } from '../web/extract-text.js';
@@ -49,7 +49,15 @@ export function makeWebSearchNode({
     const urlsVistas = new Set<string>();
 
     for (const query of montarQueries(state.question, state.missingAspects)) {
-      const resultados = await searchProvider.search(query);
+      let resultados: SearchResult[];
+      try {
+        resultados = await searchProvider.search(query);
+      } catch {
+        // Provedor fora do ar ou circuito aberto: perde-se esta query, não o grafo. Se todas
+        // falharem, o nó não acrescenta nada — o retrieve seguinte traz só o corpus CVM, o
+        // guard de iteração corta o loop, e o answer avisa que o contexto está incompleto.
+        continue;
+      }
 
       for (const resultado of resultados.slice(0, RESULTADOS_POR_QUERY)) {
         if (urlsVistas.has(resultado.url)) continue;

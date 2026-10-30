@@ -145,4 +145,28 @@ describe('makeWebSearchNode', () => {
 
     expect(deps.salvar).not.toHaveBeenCalled();
   });
+
+  it('se a busca de uma query falha, segue pra próxima sem propagar o erro', async () => {
+    const { deps, salvos } = montarDeps();
+    deps.searchProvider.search
+      .mockRejectedValueOnce(new Error('HTTP 503'))
+      .mockResolvedValueOnce([resultado(2)]);
+    const node = makeWebSearchNode(deps);
+
+    await expect(node({ question: 'Pergunta', missingAspects: ['a', 'b'] })).resolves.toEqual({});
+
+    expect(deps.searchProvider.search).toHaveBeenCalledTimes(2);
+    expect(salvos.map((documento) => documento.query)).toEqual(['Pergunta b']);
+  });
+
+  it('se todas as buscas falham, termina sem salvar nada e sem lançar erro', async () => {
+    const { deps } = montarDeps();
+    deps.searchProvider.search.mockRejectedValue(new Error('circuito aberto'));
+    const node = makeWebSearchNode(deps);
+
+    await expect(node({ question: 'Pergunta', missingAspects: ['a', 'b'] })).resolves.toEqual({});
+
+    expect(deps.buscarPagina).not.toHaveBeenCalled();
+    expect(deps.salvar).not.toHaveBeenCalled();
+  });
 });

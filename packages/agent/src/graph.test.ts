@@ -98,4 +98,49 @@ describe('buildGraph', () => {
     expect(deps.answerLlm.invoke).toHaveBeenCalledWith(expect.stringContaining('incompleto'));
     expect(final.response).toContain('Resposta do fake.');
   });
+
+  it('com a busca web sempre falhando, o grafo ainda termina no answer com o corpus CVM', async () => {
+    const { deps } = montarDeps([INSUFICIENTE]);
+    // Serper fora do ar (ou circuito aberto): toda chamada de busca falha.
+    deps.searchProvider.search.mockRejectedValue(new Error('Serper fora do ar'));
+    // O corpus CVM continua respondendo.
+    deps.buscar.mockResolvedValue([
+      {
+        origem: 'cvm',
+        id: '1',
+        ticker: 'VALE',
+        companyName: 'Vale S.A.',
+        setor: 'Mineração',
+        period: '1T26',
+        periodEnd: '2026-03-31',
+        paragraph: 'No 1T26, a Vale S.A. reportou receita líquida de R$ 47,1 bilhões.',
+        sourceUrl: 'https://dados.cvm.gov.br/itr_cia_aberta_2026.zip',
+        fetchedAt: new Date('2026-08-08T02:19:40.760Z'),
+        distance: 0.1,
+      },
+    ]);
+    deps.answerLlm.invoke.mockResolvedValue({
+      text: 'Não encontrei o motivo da queda; o contexto está incompleto. A receita no 1T26 foi de R$ 47,1 bilhões [CVM VALE 1T26].',
+    });
+
+    const app = buildGraph(deps);
+    const caminho: string[] = [];
+    let response = '';
+    for await (const evento of await app.stream(
+      { question: 'Por que a receita da Vale caiu do 4T25 para o 1T26?' },
+      { streamMode: 'updates' },
+    )) {
+      caminho.push(...Object.keys(evento));
+      if (evento.answer) response = evento.answer.response ?? '';
+    }
+
+    // Passou pelo webSearch, que falhou sem derrubar nada, e o guard cortou o loop.
+    expect(caminho).toEqual(['retrieve', 'grade', 'webSearch', 'retrieve', 'grade', 'answer']);
+    expect(deps.searchProvider.search).toHaveBeenCalled();
+    expect(deps.salvarDocumentosWeb).not.toHaveBeenCalled();
+    // O answer recebeu o aviso de contexto incompleto e respondeu com o que o corpus tinha.
+    expect(deps.answerLlm.invoke).toHaveBeenCalledWith(expect.stringContaining('incompleto'));
+    expect(response).toContain('R$ 47,1 bilhões [CVM VALE 1T26]');
+    expect(response).toContain('- VALE 1T26, data-base 31/03/2026 (CVM Dados Abertos)');
+  });
 });
