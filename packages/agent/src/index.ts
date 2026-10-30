@@ -20,12 +20,14 @@ export type {
   WebSearchState,
 } from './nodes/web-search.js';
 export {
+  CircuitoAbertoError,
+  comResiliencia,
   criarSearchProvider,
   makeGoogleCustomSearchProvider,
   makeSerperProvider,
   SearchProviderError,
 } from './search/index.js';
-export type { SearchProvider, SearchResult } from './search/index.js';
+export type { OpcoesResiliencia, SearchProvider, SearchResult } from './search/index.js';
 export { buscarHtml } from './web/fetch-html.js';
 export { buildGraph, decidirAposGrade, MAX_ITERATIONS, ResearchState } from './graph.js';
 export type { GraphDeps, ResearchStateType } from './graph.js';
