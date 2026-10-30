@@ -50,4 +50,25 @@ describe('makeSerperProvider', () => {
 
     await expect(makeSerperProvider('k').search('q')).rejects.toThrow(SearchProviderError);
   });
+
+  it('lança SearchProviderError quando a API não responde dentro do timeout', async () => {
+    // fetch que nunca responde: só termina quando o signal do timeout aborta a requisição.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init.signal?.addEventListener('abort', () => reject(init.signal?.reason));
+          }),
+      ),
+    );
+
+    await expect(makeSerperProvider('k', 20).search('q')).rejects.toThrow('sem resposta em 20 ms');
+  });
+
+  it('transforma falha de rede em SearchProviderError', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('fetch failed')));
+
+    await expect(makeSerperProvider('k').search('q')).rejects.toThrow(SearchProviderError);
+  });
 });

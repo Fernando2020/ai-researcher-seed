@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { fetchComTimeout, TIMEOUT_BUSCA_MS } from './fetch-com-timeout.js';
 import { SearchProviderError } from './search-provider.js';
 import type { SearchProvider, SearchResult } from './search-provider.js';
 
@@ -13,14 +14,19 @@ const serperResponseSchema = z.object({
     .default([]),
 });
 
-export function makeSerperProvider(apiKey: string): SearchProvider {
+export function makeSerperProvider(apiKey: string, timeoutMs = TIMEOUT_BUSCA_MS): SearchProvider {
   return {
     async search(query: string): Promise<SearchResult[]> {
-      const resposta = await fetch(SERPER_URL, {
-        method: 'POST',
-        headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q: query }),
-      });
+      const resposta = await fetchComTimeout(
+        'Serper',
+        SERPER_URL,
+        {
+          method: 'POST',
+          headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ q: query }),
+        },
+        timeoutMs,
+      );
       if (!resposta.ok) {
         throw new SearchProviderError('Serper', `HTTP ${resposta.status}`);
       }
