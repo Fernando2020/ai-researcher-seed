@@ -12,9 +12,8 @@ export function criarChatModelReal(model: string): ChatVertexAI {
 
   return new ChatVertexAI({
     model,
-    // Os modelos Gemini 3.x são servidos no endpoint global, não no regional (us-central1)
-    // que os embeddings usam.
-    location: 'global',
+    // Os modelos Gemini 3.x são servidos no endpoint global, não no regional (us-central1).
+    location: process.env.GOOGLE_CLOUD_LOCATION ?? 'global',
     // Temperatura zero: a mesma pergunta com o mesmo contexto dá a mesma resposta — é o que
     // torna os evals comparáveis entre execuções.
     temperature: 0,

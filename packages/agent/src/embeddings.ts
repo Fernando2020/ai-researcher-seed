@@ -15,7 +15,9 @@ export function criarEmbeddingsReal(): VertexAIEmbeddings {
 
   return new VertexAIEmbeddings({
     model: process.env.MODEL_EMBEDDING ?? 'gemini-embedding-001',
-    location: process.env.GOOGLE_CLOUD_LOCATION ?? 'us-central1',
+    // Mesmo endpoint do chat. O gemini-embedding-001 devolve vetores idênticos no global e no
+    // us-central1 — trocar o endpoint não invalida o índice; trocar o modelo, sim.
+    location: process.env.GOOGLE_CLOUD_LOCATION ?? 'global',
     dimensions: EMBEDDING_DIMENSIONS,
     // A Vertex AI só aceita OAuth2/ADC, nunca API key — mas o @langchain/google-vertexai
     // usa GOOGLE_API_KEY do ambiente se existir, mesmo pra Vertex, e a Predict API
