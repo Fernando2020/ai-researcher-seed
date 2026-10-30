@@ -14,19 +14,26 @@ export interface GraphLike {
 }
 
 export interface ChatRouteOptions {
-  // `null` quando falta configuração (credencial, chave de busca): a rota responde 503 em vez
-  // de impedir a API inteira — e o /health — de subir.
-  graph: GraphLike | null;
+  // Função, não o grafo pronto: o grafo nasce na primeira pergunta. Lança quando falta
+  // configuração (credencial, chave de busca) — a rota responde 503, e o resto da API (o
+  // /health) continua de pé.
+  getGraph: () => GraphLike;
 }
 
 const MENSAGEM_ERRO = 'Não foi possível concluir a resposta. Tente novamente em instantes.';
 
-const chatRoute: FastifyPluginAsync<ChatRouteOptions> = async (app, { graph }) => {
+const chatRoute: FastifyPluginAsync<ChatRouteOptions> = async (app, { getGraph }) => {
   app.post('/chat', async (request, reply) => {
-    // Corpo inválido lança ZodError, e grafo ausente lança ChatIndisponivelError: o error
+    // Corpo inválido lança ZodError, e grafo indisponível lança ChatIndisponivelError: o error
     // handler central transforma os dois em problem+json. A rota não monta resposta de erro.
     const body = chatRequestSchema.parse(request.body);
-    if (!graph) throw new ChatIndisponivelError();
+    let graph: GraphLike;
+    try {
+      graph = getGraph();
+    } catch (erro) {
+      request.log.warn({ err: erro }, 'Grafo indisponível');
+      throw new ChatIndisponivelError();
+    }
 
     // Daqui em diante a resposta é escrita à mão no socket: o Fastify não deve tentar enviar
     // nada quando o handler terminar.
