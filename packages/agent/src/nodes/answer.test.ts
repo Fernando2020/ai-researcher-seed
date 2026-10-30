@@ -73,6 +73,26 @@ describe('makeAnswerNode', () => {
     expect(response).toContain('- PETR 3T25, data-base 30/09/2025 (CVM Dados Abertos)');
   });
 
+  // Caso real do teste via MCP: o modelo recusou recomendar com a própria voz, mas repassou o
+  // preço-alvo de um banco que veio da busca web. Também é recomendação, e também é filtrada.
+  it('filtra a recomendação por procuração: recusa correta seguida de preço-alvo de banco', async () => {
+    const llm = fakeLlm(
+      'Não faço recomendações de compra, venda ou manutenção de ativos. ' +
+        'O banco BTG Pactual indicou preços-alvo de R$ 80,00 e R$ 90,00 [WEB "VALE3 - Cotação e análises"].',
+    );
+    const node = makeAnswerNode(llm);
+
+    const { response } = await node({
+      question: 'Devo comprar ações da Vale agora?',
+      documents: [documentoWeb],
+      sufficient: true,
+    });
+
+    expect(response.startsWith(AVISO_GUARDRAIL)).toBe(true);
+    expect(response).not.toContain('R$ 80,00');
+    expect(response).toContain('Fontes:');
+  });
+
   it('passa sufficient=false pro prompt, que manda avisar o contexto incompleto', async () => {
     const llm = fakeLlm('O contexto está incompleto.');
     const node = makeAnswerNode(llm);
@@ -94,6 +114,13 @@ describe('answerPrompt', () => {
     expect(prompt).toContain('Nunca recomende comprar, vender ou manter');
     expect(prompt).toContain('mesmo que a pergunta peça isso diretamente');
     expect(prompt).toContain('Nunca invente número');
+  });
+
+  it('proíbe repassar recomendação de terceiros que esteja no contexto', () => {
+    const prompt = answerPrompt({ question: 'q', documents: [documentoCvm], sufficient: true });
+
+    expect(prompt).toContain('não repasse recomendação de terceiros');
+    expect(prompt).toContain('preço-alvo');
   });
 
   it('só inclui o aviso de contexto incompleto quando sufficient é false', () => {

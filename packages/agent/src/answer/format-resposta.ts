@@ -17,6 +17,16 @@ const PADROES_RECOMENDATORIOS: RegExp[] = [
   /\bvale a pena (comprar|vender|investir|manter|aplicar)\b/,
   /\b(voce )?(deve|deveria) (comprar|vender|investir|manter|aplicar)\b/,
   /\b(e|seria) (um )?(bom|otimo|mau) (momento|negocio) (para|pra) (comprar|vender|investir)\b/,
+  // Recomendação por procuração: repassar o preço-alvo ou o rating de um banco ou corretora em
+  // resposta a "devo comprar?" é recomendar com a voz de outro. Achado no teste real via MCP.
+  /\bprecos?[- ]alvos?\b/,
+  /\bprecos? justos?\b/,
+  /\btarget prices?\b/,
+  // O lookbehind deixa passar a recusa correta ("não faço recomendações de compra") e pega a
+  // recomendação de terceiro ("o banco mantém recomendação de compra").
+  /(?<!nao (faco|fazemos|posso fazer) )\brecomendac(ao|oes) (de|para) (compra|venda|manutencao)\b/,
+  /\brecomenda(m)? (a )?(compra|venda)\b/,
+  /\b(outperform|underperform|overweight|underweight|market perform)\b/,
 ];
 
 // Minúsculas e sem acento: "Recomendação" e "recomendacao" caem no mesmo padrão. O NFD separa

@@ -48,6 +48,14 @@ describe('contemRecomendacao', () => {
     'Vale a pena comprar Vale neste trimestre.',
     'Você deveria investir em bancos.',
     'É um bom momento para comprar.',
+    // Recomendação por procuração: preço-alvo e rating de banco ou corretora.
+    'O banco BTG Pactual indicou preços-alvo de R$ 80,00 e R$ 90,00.',
+    'A corretora elevou o preço alvo para R$ 75.',
+    'O preço justo estimado é de R$ 70.',
+    'Target price de US$ 15 para o ADR.',
+    'O Itaú BBA mantém recomendação de compra para VALE3.',
+    'Analistas recomendam a compra do papel.',
+    'O Morgan Stanley classifica a ação como overweight.',
   ])('detecta linguagem recomendatória: %s', (texto) => {
     expect(contemRecomendacao(texto)).toBe(true);
   });
@@ -56,6 +64,9 @@ describe('contemRecomendacao', () => {
     'A Petrobras teve lucro líquido de R$ 32,7 bilhões no 3T25.',
     'O indicador indica queda de receita.',
     'Não faço recomendações de investimento; os dados estão abaixo.',
+    // A recusa correta, como o modelo real escreveu no teste via MCP.
+    'Não faço recomendações de compra, venda ou manutenção de ativos.',
+    'Não posso fazer recomendações de venda.',
   ])('não marca texto informativo: %s', (texto) => {
     expect(contemRecomendacao(texto)).toBe(false);
   });
