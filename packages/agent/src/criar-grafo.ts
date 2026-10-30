@@ -22,3 +22,15 @@ export function criarGrafoReal() {
     answerLlm: criarChatModelReal(process.env.MODEL_ANSWER ?? 'gemini-3.6-flash'),
   });
 }
+
+// Uma instância por processo: o circuito do SearchProvider e os clientes da Vertex AI são
+// compartilhados por todas as chamadas. Construída na primeira chamada, não no import — um
+// processo que nunca recebe pergunta (o servidor MCP só listando tools, por exemplo) não abre
+// conexão nem exige credencial. Se a construção falhar (falta configuração), nada é guardado e
+// a próxima chamada tenta de novo.
+let grafoReal: ReturnType<typeof criarGrafoReal> | undefined;
+
+export function obterGrafoReal(): ReturnType<typeof criarGrafoReal> {
+  grafoReal ??= criarGrafoReal();
+  return grafoReal;
+}
