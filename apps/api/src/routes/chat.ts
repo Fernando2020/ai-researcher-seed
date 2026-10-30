@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { chatRequestSchema } from '@hero/contracts';
+import { ChatIndisponivelError } from '../errors.js';
 import { paraEventos } from './chat-event.js';
 import type { ChatEvent, GraphChunk } from './chat-event.js';
 
@@ -22,27 +23,10 @@ const MENSAGEM_ERRO = 'Não foi possível concluir a resposta. Tente novamente e
 
 const chatRoute: FastifyPluginAsync<ChatRouteOptions> = async (app, { graph }) => {
   app.post('/chat', async (request, reply) => {
-    const body = chatRequestSchema.safeParse(request.body);
-    if (!body.success) {
-      return reply
-        .code(400)
-        .type('application/problem+json')
-        .send({
-          type: 'about:blank',
-          title: 'Requisição inválida',
-          status: 400,
-          detail: body.error.issues.map((issue) => issue.message).join('; '),
-        });
-    }
-
-    if (!graph) {
-      return reply.code(503).type('application/problem+json').send({
-        type: 'about:blank',
-        title: 'Chat indisponível',
-        status: 503,
-        detail: 'O grafo não foi configurado neste ambiente.',
-      });
-    }
+    // Corpo inválido lança ZodError, e grafo ausente lança ChatIndisponivelError: o error
+    // handler central transforma os dois em problem+json. A rota não monta resposta de erro.
+    const body = chatRequestSchema.parse(request.body);
+    if (!graph) throw new ChatIndisponivelError();
 
     // Daqui em diante a resposta é escrita à mão no socket: o Fastify não deve tentar enviar
     // nada quando o handler terminar.
@@ -67,15 +51,16 @@ const chatRoute: FastifyPluginAsync<ChatRouteOptions> = async (app, { graph }) =
 
     try {
       const chunks = await graph.stream(
-        { question: body.data.question },
+        { question: body.question },
         { streamMode: 'updates', signal: abort.signal },
       );
       for await (const evento of paraEventos(chunks)) {
         escrever(evento);
       }
     } catch (error) {
-      // O status 200 já foi enviado: o erro vira um evento no próprio stream. O detalhe fica
-      // no log, nunca na resposta. Cancelamento pelo cliente não é erro.
+      // A única exceção ao error handler central: o status 200 e os headers do SSE já foram
+      // enviados, então não há mais como responder problem+json. O erro vira um evento no
+      // próprio stream. O detalhe fica no log, nunca na resposta. Cancelamento não é erro.
       if (!abort.signal.aborted) {
         request.log.error(error, 'Erro durante a execução do grafo');
         escrever({ type: 'error', message: MENSAGEM_ERRO });

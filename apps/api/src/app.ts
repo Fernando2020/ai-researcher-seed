@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import { registrarTratamentoDeErros } from './error-handler.js';
 import chatRoute from './routes/chat.js';
 import type { GraphLike } from './routes/chat.js';
 import healthRoute from './routes/health.js';
@@ -11,6 +12,8 @@ export interface BuildOptions {
 
 export function build({ checkDatabase = defaultCheckDatabase, graph = null }: BuildOptions = {}) {
   const app = Fastify({ logger: true });
+
+  registrarTratamentoDeErros(app);
 
   app.register(
     async (api) => {
