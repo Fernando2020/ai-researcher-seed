@@ -1,9 +1,12 @@
 import { makeDemoSearchProvider } from '../demo/search-demo.js';
 import { makeGoogleCustomSearchProvider } from './google-custom-search.js';
+import { comResiliencia } from './resiliencia.js';
 import type { SearchProvider } from './search-provider.js';
 import { makeSerperProvider } from './serper.js';
 
 export { makeGoogleCustomSearchProvider } from './google-custom-search.js';
+export { CircuitoAbertoError, comResiliencia } from './resiliencia.js';
+export type { OpcoesResiliencia } from './resiliencia.js';
 export { SearchProviderError } from './search-provider.js';
 export type { SearchProvider, SearchResult } from './search-provider.js';
 export { makeSerperProvider } from './serper.js';
@@ -21,18 +24,25 @@ function exigirVariavel(nome: string, provider: string): string {
 // Search é uma mudança de configuração.
 export function criarSearchProvider(): SearchProvider {
   // Único ponto que lê DEMO pra busca: com DEMO=true, as fixtures entram no lugar do provedor
-  // real — e nenhuma chave de API é exigida.
+  // real — e nenhuma chave de API é exigida. Sem rede, não há o que proteger com retry nem
+  // circuito: a fixture não passa pela camada de resiliência.
   if (process.env.DEMO === 'true') return makeDemoSearchProvider();
 
   const provider = process.env.SEARCH_PROVIDER ?? 'serper';
 
+  // Os provedores reais saem daqui já protegidos: retry com backoff e circuit breaker.
   switch (provider) {
     case 'serper':
-      return makeSerperProvider(exigirVariavel('SERPER_API_KEY', provider));
+      return comResiliencia(makeSerperProvider(exigirVariavel('SERPER_API_KEY', provider)), {
+        nome: 'Serper',
+      });
     case 'google':
-      return makeGoogleCustomSearchProvider(
-        exigirVariavel('GOOGLE_CUSTOM_SEARCH_API_KEY', provider),
-        exigirVariavel('GOOGLE_CUSTOM_SEARCH_CX', provider),
+      return comResiliencia(
+        makeGoogleCustomSearchProvider(
+          exigirVariavel('GOOGLE_CUSTOM_SEARCH_API_KEY', provider),
+          exigirVariavel('GOOGLE_CUSTOM_SEARCH_CX', provider),
+        ),
+        { nome: 'Google Custom Search' },
       );
     default:
       throw new Error(

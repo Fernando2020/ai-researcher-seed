@@ -58,4 +58,22 @@ describe('criarSearchProvider', () => {
 
     expect(() => criarSearchProvider()).toThrow('SEARCH_PROVIDER desconhecido: "bing"');
   });
+
+  it('protege o provedor real com retry: um 503 vira 3 tentativas', async () => {
+    vi.useFakeTimers();
+    vi.stubEnv('DEMO', undefined);
+    vi.stubEnv('SEARCH_PROVIDER', 'serper');
+    vi.stubEnv('SERPER_API_KEY', 'chave-serper');
+    const fetchFake = vi.fn(() => Promise.resolve(new Response('{}', { status: 503 })));
+    vi.stubGlobal('fetch', fetchFake);
+
+    const busca = criarSearchProvider().search('q');
+    const verificacao = expect(busca).rejects.toThrow('HTTP 503');
+    // Avança os backoffs (500 ms + 1000 ms) sem esperar de verdade.
+    await vi.runAllTimersAsync();
+    await verificacao;
+
+    expect(fetchFake).toHaveBeenCalledTimes(3);
+    vi.useRealTimers();
+  });
 });
