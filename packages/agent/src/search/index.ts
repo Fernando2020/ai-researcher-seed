@@ -1,3 +1,4 @@
+import { makeDemoSearchProvider } from '../demo/search-demo.js';
 import { makeGoogleCustomSearchProvider } from './google-custom-search.js';
 import type { SearchProvider } from './search-provider.js';
 import { makeSerperProvider } from './serper.js';
@@ -19,6 +20,10 @@ function exigirVariavel(nome: string, provider: string): string {
 // O provedor é escolhido por variável de ambiente, não no código: trocar Serper por Custom
 // Search é uma mudança de configuração.
 export function criarSearchProvider(): SearchProvider {
+  // Único ponto que lê DEMO pra busca: com DEMO=true, as fixtures entram no lugar do provedor
+  // real — e nenhuma chave de API é exigida.
+  if (process.env.DEMO === 'true') return makeDemoSearchProvider();
+
   const provider = process.env.SEARCH_PROVIDER ?? 'serper';
 
   switch (provider) {
