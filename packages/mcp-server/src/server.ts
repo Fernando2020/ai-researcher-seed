@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { criarCallbacksDeTracing } from '@hero/agent';
+import { criarCallbacksDeTracing, criarMetricsCallback } from '@hero/agent';
+import type { BaseCallbackHandler } from '@hero/agent';
 import { chatRequestSchema } from '@hero/contracts';
 
 // Só o que a tool usa do grafo. O grafo compilado do LangGraph satisfaz esta interface sem
@@ -8,7 +9,7 @@ import { chatRequestSchema } from '@hero/contracts';
 export interface GrafoPerguntar {
   invoke(
     input: { question: string },
-    options: { callbacks: ReturnType<typeof criarCallbacksDeTracing> },
+    options: { callbacks: BaseCallbackHandler[] },
   ): Promise<{ response: string }>;
 }
 
@@ -54,7 +55,7 @@ export function criarServidorMcp(getGraph: GetGraph): McpServer {
       try {
         const { response } = await getGraph().invoke(
           { question: pergunta },
-          { callbacks: criarCallbacksDeTracing() },
+          { callbacks: [...criarCallbacksDeTracing(), criarMetricsCallback()] },
         );
         return { content: [{ type: 'text', text: response }] };
       } catch (erro) {

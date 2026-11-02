@@ -73,7 +73,7 @@ describe('servidor MCP — tool perguntar', () => {
 
     expect(invoke).toHaveBeenCalledWith(
       { question: 'Qual a receita da Vale no 3T25?' },
-      { callbacks: [] },
+      { callbacks: [expect.anything()] },
     );
     expect(resultado.isError).toBeFalsy();
     expect(textoDe(resultado)).toContain('[CVM VALE 3T25]');
