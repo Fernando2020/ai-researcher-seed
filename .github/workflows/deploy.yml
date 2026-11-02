@@ -75,6 +75,7 @@ jobs:
             LANGFUSE_PUBLIC_KEY=langfuse-public-key:latest
             LANGFUSE_SECRET_KEY=langfuse-secret-key:latest
           env_vars: |-
+            GOOGLE_CLOUD_PROJECT_ID=${{ env.PROJECT_ID }}
             LANGFUSE_BASE_URL=https://us.cloud.langfuse.com
             LANGFUSE_TRACING_ENVIRONMENT=production
           flags: --add-cloudsql-instances=${{ env.PROJECT_ID }}:${{ env.REGION }}:ai-researcher-db
