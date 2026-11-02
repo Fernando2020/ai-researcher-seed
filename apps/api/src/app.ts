@@ -1,34 +1,32 @@
 import Fastify from 'fastify';
 import { mcpHttpPlugin } from '@hero/mcp-server';
-import type { GrafoPerguntar } from '@hero/mcp-server';
+import type { GetGraph } from '@hero/mcp-server';
 import { registrarTratamentoDeErros } from './error-handler.js';
 import { ChatIndisponivelError } from './errors.js';
 import chatRoute from './routes/chat.js';
-import type { GraphLike } from './routes/chat.js';
+import type { ChatRouteOptions } from './routes/chat.js';
 import healthRoute from './routes/health.js';
 import { checkDatabase as defaultCheckDatabase } from './db.js';
 
-// O grafo que a API inteira usa: o /chat chama `stream`, a tool MCP chama `invoke`. O grafo
-// real do LangGraph tem os dois.
-export type GrafoDaApi = GraphLike & GrafoPerguntar;
-
 export interface BuildOptions {
   checkDatabase?: () => Promise<boolean>;
-  // Uma única função pras duas rotas — e, em produção, memoizada (obterGrafoReal): /chat e
-  // /mcp recebem a mesma instância do grafo, e portanto o mesmo SearchProvider e o mesmo
-  // circuit breaker. Dois grafos seriam dois circuitos independentes pra mesma API externa.
-  getGraph?: () => GrafoDaApi;
+  // Uma opção por rota, cada uma com o tipo mínimo de que a rota precisa: o /chat chama `stream`,
+  // a tool MCP chama `invoke`. Em produção, as duas recebem a mesma função memoizada (ver
+  // index.ts) — grafos separados duplicariam Postgres, Vertex AI e circuit breaker.
+  getChatGraph?: ChatRouteOptions['getGraph'];
+  getMcpGraph?: GetGraph;
 }
 
-// Sem getGraph, nenhuma rota que precisa do grafo funciona — útil nos testes que só olham o
-// /health ou o tratamento de erro.
-const semGrafo = (): GrafoDaApi => {
+// Sem grafo, a rota que precisa dele falha — útil nos testes que só olham o /health ou o
+// tratamento de erro.
+const semGrafo = (): never => {
   throw new ChatIndisponivelError();
 };
 
 export function build({
   checkDatabase = defaultCheckDatabase,
-  getGraph = semGrafo,
+  getChatGraph = semGrafo,
+  getMcpGraph = semGrafo,
 }: BuildOptions = {}) {
   const app = Fastify({ logger: true });
 
@@ -37,10 +35,10 @@ export function build({
   app.register(
     async (api) => {
       api.register(healthRoute, { checkDatabase });
-      api.register(chatRoute, { getGraph });
+      api.register(chatRoute, { getGraph: getChatGraph });
       // Gateway MCP na mesma porta e atrás do mesmo proxy /api do /chat: o Angular chama
       // /api/mcp sem CORS, como já chama /api/chat.
-      api.register(mcpHttpPlugin, { getGraph, path: '/mcp' });
+      api.register(mcpHttpPlugin, { getGraph: getMcpGraph, path: '/mcp' });
     },
     { prefix: '/api' },
   );

@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import { build } from '../app.js';
-import type { GrafoDaApi } from '../app.js';
+import type { GrafoPerguntar } from '@hero/mcp-server';
+import type { GraphLike } from './chat.js';
 
 let app: FastifyInstance | undefined;
 
@@ -12,8 +13,9 @@ afterEach(async () => {
 
 // A API inteira de verdade, numa porta livre: o transporte HTTP do MCP é testado pela rede,
 // como um cliente o usaria.
-async function subir(getGraph: () => GrafoDaApi): Promise<string> {
-  app = build({ checkDatabase: async () => true, getGraph });
+async function subir(getGraph: () => GrafoFake): Promise<string> {
+  // A mesma função pras duas rotas, como no index.ts.
+  app = build({ checkDatabase: async () => true, getChatGraph: getGraph, getMcpGraph: getGraph });
   return app.listen({ port: 0, host: '127.0.0.1' });
 }
 
@@ -31,7 +33,9 @@ function chamarPerguntar(base: string, pergunta: string) {
   });
 }
 
-function grafoFake(): GrafoDaApi {
+type GrafoFake = GraphLike & GrafoPerguntar;
+
+function grafoFake(): GrafoFake {
   return {
     invoke: vi.fn().mockResolvedValue({ response: 'Resposta via MCP [CVM VALE 3T25].' }),
     stream: vi.fn().mockResolvedValue(

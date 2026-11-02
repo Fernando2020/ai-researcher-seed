@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { RetrievedDoc } from '@hero/agent';
 import { build } from '../app.js';
-import type { GrafoDaApi } from '../app.js';
 import type { GraphChunk } from './chat-event.js';
+import type { GraphLike } from './chat.js';
 
 const documentoCvm: RetrievedDoc = {
   origem: 'cvm',
@@ -28,11 +28,9 @@ const documentoWeb: RetrievedDoc = {
   distance: 0.2,
 };
 
-// Grafo fake: o stream devolve os chunks dados, na ordem — e, se `erro` vier, lança depois
-// deles. O invoke (usado só pela tool MCP) não é chamado nestes testes.
-function grafoFake(chunks: GraphChunk[], erro?: Error): GrafoDaApi {
+// Grafo fake: o stream devolve os chunks dados, na ordem — e, se `erro` vier, lança depois deles.
+function grafoFake(chunks: GraphChunk[], erro?: Error): GraphLike {
   return {
-    invoke: () => Promise.reject(new Error('invoke não usado no /chat')),
     stream: () =>
       Promise.resolve(
         (async function* () {
@@ -51,10 +49,10 @@ function lerEventos(corpo: string): unknown[] {
     .map((bloco) => JSON.parse(bloco.slice('data: '.length)) as unknown);
 }
 
-function postChat(graph: GrafoDaApi | null, payload: unknown) {
+function postChat(graph: GraphLike | null, payload: unknown) {
   const app = build({
     checkDatabase: async () => true,
-    getGraph: graph
+    getChatGraph: graph
       ? () => graph
       : () => {
           throw new Error('GOOGLE_CLOUD_PROJECT_ID não configurada');
@@ -127,7 +125,7 @@ describe('POST /api/chat', () => {
   it('continua atendendo depois de um erro no grafo — o processo não cai', async () => {
     const app = build({
       checkDatabase: async () => true,
-      getGraph: () => grafoFake([], new Error('falha')),
+      getChatGraph: () => grafoFake([], new Error('falha')),
     });
 
     await app.inject({ method: 'POST', url: '/api/chat', payload: { question: 'x' } });
