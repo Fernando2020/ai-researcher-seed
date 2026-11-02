@@ -1,7 +1,7 @@
 :host {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  height: 100dvh;
 }
 
 .header {
@@ -38,20 +38,135 @@
   color: var(--color-text-muted);
 }
 
+// A largura máxima fica no padding: assim a barra de rolagem continua na borda da tela.
 .messages {
   flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 32px max(32px, calc((100% - 856px) / 2));
+}
+
+.message {
+  display: flex;
+}
+
+.message--user {
+  justify-content: flex-end;
+}
+
+.message--assistant {
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.bubble {
+  margin: 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.bubble--user {
+  max-width: 75%;
+  padding: 12px 18px;
+  background: var(--color-accent-tint);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-tail) var(--radius-lg);
+}
+
+.bubble--assistant {
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-tail) var(--radius-lg) var(--radius-lg) var(--radius-lg);
+}
+
+.avatar {
+  flex: 0 0 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.assistant {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1.05em;
+  vertical-align: text-bottom;
+  background: var(--color-accent);
+  animation: piscar 1s steps(2, start) infinite;
+}
+
+@keyframes piscar {
+  to {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor {
+    animation: none;
+  }
+}
+
+.citations-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.citations {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.citation {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   box-sizing: border-box;
-  width: 100%;
-  max-width: 920px;
-  margin: 0 auto;
-  padding: 32px;
+  min-height: 44px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+}
+
+.citation-origin {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-text-muted);
 }
 
 .composer {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  align-items: center;
+  align-items: flex-end;
   box-sizing: border-box;
   width: calc(100% - 64px);
   max-width: 856px;
@@ -64,13 +179,18 @@
 
 .input {
   flex: 1 1 140px;
+  box-sizing: border-box;
   min-width: 0;
   min-height: 44px;
-  padding: 0 12px;
+  max-height: 160px;
+  padding: 10px 12px;
   background: transparent;
   border: 0;
   color: var(--color-text);
   font: inherit;
+  line-height: 1.5;
+  resize: none;
+  field-sizing: content;
 }
 
 .input::placeholder {
@@ -90,6 +210,11 @@
   cursor: pointer;
 }
 
+.send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -106,6 +231,14 @@
 
   .messages {
     padding: 16px;
+  }
+
+  .message--assistant {
+    gap: 10px;
+  }
+
+  .bubble--user {
+    max-width: 85%;
   }
 
   .composer {

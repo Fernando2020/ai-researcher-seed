@@ -8,17 +8,75 @@
   pela CVM. Confira os dados nas fontes citadas.
 </p>
 
-<section class="messages" aria-label="Conversa"></section>
+<section
+  #areaDeMensagens
+  class="messages"
+  aria-label="Conversa"
+  aria-live="polite"
+  [attr.aria-busy]="store.ocupado()"
+>
+  @for (mensagem of mensagens(); track mensagem.id) { @if (mensagem.autor === 'usuario') {
+  <div class="message message--user">
+    <p class="bubble bubble--user">{{ mensagem.corpo }}</p>
+  </div>
+  } @else {
+  <div class="message message--assistant">
+    <div class="avatar" aria-hidden="true">
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="5" cy="6" r="2.5"></circle>
+        <circle cx="5" cy="18" r="2.5"></circle>
+        <circle cx="19" cy="12" r="2.5"></circle>
+        <path d="M7.5 6.5 16.5 11.5M7.5 17.5l9-5"></path>
+      </svg>
+    </div>
+    <div class="assistant">
+      <p class="bubble bubble--assistant" [attr.role]="mensagem.estado === 'erro' ? 'alert' : null">
+        {{ mensagem.corpo }} @if (mensagem.estado === 'aguardando' || mensagem.estado ===
+        'revelando') {
+        <span class="cursor" aria-hidden="true"></span>
+        }
+      </p>
 
-<!-- O envio ainda não faz nada: o preventDefault só impede o recarregamento da página. -->
-<form class="composer" (submit)="$event.preventDefault()">
+      @if (mensagem.citacoes.length > 0) {
+      <div>
+        <h2 class="citations-title">Fontes citadas</h2>
+        <ul class="citations">
+          @for (citacao of mensagem.citacoes; track citacao.url + citacao.label) {
+          <li>
+            <a class="citation" [href]="citacao.url" target="_blank" rel="noopener noreferrer">
+              <span>{{ citacao.label }}</span>
+              <span class="citation-origin">{{ citacao.origin }}</span>
+            </a>
+          </li>
+          }
+        </ul>
+      </div>
+      }
+    </div>
+  </div>
+  } }
+</section>
+
+<form class="composer" (submit)="$event.preventDefault(); enviar()">
   <label class="visually-hidden" for="pergunta">Sua pergunta</label>
-  <input
+  <textarea
     id="pergunta"
     class="input"
-    type="text"
+    rows="1"
     maxlength="1000"
     placeholder="Pergunte sobre as 20 empresas da B3"
-  />
-  <button class="send" type="submit">Enviar</button>
+    [value]="pergunta()"
+    (input)="aoDigitar($event)"
+    (keydown.enter)="aoPressionarEnter($event)"
+  ></textarea>
+  <button class="send" type="submit" [disabled]="!podeEnviar()">Enviar</button>
 </form>
