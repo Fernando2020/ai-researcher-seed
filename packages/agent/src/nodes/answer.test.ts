@@ -49,7 +49,7 @@ describe('makeAnswerNode', () => {
 
     expect(response).toContain('R$ 32,7 bilhões no 3T25 [CVM PETR 3T25]');
     expect(response).toContain('Fontes:');
-    expect(response).toContain('- PETR 3T25, data-base 30/09/2025 (CVM Dados Abertos)');
+    expect(response).toContain(`- PETR · 3T25 (data-base 30/09/2025) (${documentoCvm.sourceUrl})`);
     expect(response).toContain(
       '- Petrobras divulga resultado do 3T25 (https://exemplo.com/petrobras-3t25)',
     );
@@ -70,7 +70,7 @@ describe('makeAnswerNode', () => {
     expect(response.startsWith(AVISO_GUARDRAIL)).toBe(true);
     expect(response).not.toContain('recomendo comprar');
     expect(contemRecomendacao(response)).toBe(false);
-    expect(response).toContain('- PETR 3T25, data-base 30/09/2025 (CVM Dados Abertos)');
+    expect(response).toContain(`- PETR · 3T25 (data-base 30/09/2025) (${documentoCvm.sourceUrl})`);
   });
 
   // Caso real do teste via MCP: o modelo recusou recomendar com a própria voz, mas repassou o

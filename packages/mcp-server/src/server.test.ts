@@ -61,7 +61,7 @@ describe('servidor MCP — tool perguntar', () => {
   it('roda o grafo com a pergunta e devolve a resposta final', async () => {
     const invoke = vi.fn().mockResolvedValue({
       response:
-        'A Vale teve receita líquida de R$ 56,7 bilhões no 3T25 [CVM VALE 3T25].\n\nFontes:\n- VALE 3T25, data-base 30/09/2025 (CVM Dados Abertos)',
+        'A Vale teve receita líquida de R$ 56,7 bilhões no 3T25 [CVM VALE 3T25].\n\nFontes:\n- VALE · 3T25 (data-base 30/09/2025) (https://dados.cvm.gov.br/itr_cia_aberta_2025.zip)',
     });
     const client = await conectar(() => ({ invoke }));
 

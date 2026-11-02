@@ -141,6 +141,8 @@ describe('buildGraph', () => {
     // O answer recebeu o aviso de contexto incompleto e respondeu com o que o corpus tinha.
     expect(deps.answerLlm.invoke).toHaveBeenCalledWith(expect.stringContaining('incompleto'));
     expect(response).toContain('R$ 47,1 bilhões [CVM VALE 1T26]');
-    expect(response).toContain('- VALE 1T26, data-base 31/03/2026 (CVM Dados Abertos)');
+    expect(response).toContain(
+      '- VALE · 1T26 (data-base 31/03/2026) (https://dados.cvm.gov.br/itr_cia_aberta_2026.zip)',
+    );
   });
 });

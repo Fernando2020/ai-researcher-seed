@@ -56,7 +56,8 @@ function chaveDaFonte(doc: RetrievedDoc): string {
 
 function formatarFonte(doc: RetrievedDoc): string {
   if (doc.origem === 'cvm') {
-    return `- ${doc.ticker} ${doc.period}, data-base ${formatarDataBase(doc.periodEnd)} (CVM Dados Abertos)`;
+    // O formato é contrato: o parseAnswer do apps/web lê estas linhas. Toda linha termina na URL.
+    return `- ${doc.ticker} · ${doc.period} (data-base ${formatarDataBase(doc.periodEnd)}) (${doc.sourceUrl})`;
   }
   return `- ${doc.title} (${doc.sourceUrl})`;
 }

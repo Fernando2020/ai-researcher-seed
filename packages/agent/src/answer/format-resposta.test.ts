@@ -85,7 +85,7 @@ describe('formatarFontes', () => {
 
     expect(fontes).toBe(
       'Fontes:\n' +
-        '- VALE 3T25, data-base 30/09/2025 (CVM Dados Abertos)\n' +
+        `- VALE · 3T25 (data-base 30/09/2025) (${ZIP_ITR_2025})\n` +
         '- Vale explica queda (https://exemplo.com/vale)',
     );
   });
@@ -105,8 +105,8 @@ describe('formatarFontes', () => {
       doCorpus('PETR', '3T25', '2025-09-30'),
     ]);
 
-    expect(fontes).toContain('VALE 3T25');
-    expect(fontes).toContain('PETR 3T25');
+    expect(fontes).toContain('VALE · 3T25');
+    expect(fontes).toContain('PETR · 3T25');
   });
 
   it('informa quando não há documentos', () => {
@@ -121,7 +121,7 @@ describe('formatarResposta', () => {
     ]);
 
     expect(resposta).toBe(
-      'Receita de R$ 10 bi.\n\nFontes:\n- VALE 3T25, data-base 30/09/2025 (CVM Dados Abertos)',
+      `Receita de R$ 10 bi.\n\nFontes:\n- VALE · 3T25 (data-base 30/09/2025) (${ZIP_ITR_2025})`,
     );
   });
 
@@ -131,7 +131,7 @@ describe('formatarResposta', () => {
     ]);
 
     expect(resposta).toBe(
-      `${AVISO_GUARDRAIL}\n\nFontes:\n- VALE 3T25, data-base 30/09/2025 (CVM Dados Abertos)`,
+      `${AVISO_GUARDRAIL}\n\nFontes:\n- VALE · 3T25 (data-base 30/09/2025) (${ZIP_ITR_2025})`,
     );
   });
 });
