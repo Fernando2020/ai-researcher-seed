@@ -81,11 +81,13 @@ Etapas em ordem: Retrieve, Grade, Search, Answer. Fundo `--color-surface-sunken`
 | Em execução | Arco girando em `--color-accent` | `Em execução`, em `--color-accent` |
 | Concluído | Círculo cheio em `--color-accent`, com check em `--color-on-accent` | `Concluído`, em `--color-text` |
 
-Quando o grafo volta ao Retrieve, a etapa volta a "Em execução" e o detalhe diz que é a segunda passada. O loop não se esconde.
+Timeline vertical: cada etapa mostra rótulo, descrição, status e, ao terminar, a duração. Quando o grafo volta ao Retrieve, entra uma etapa nova na lista, e a descrição diz que é a segunda passada. O loop não se esconde.
+
+Etapa interrompida por falha: círculo vazado com X em `--color-accent` e o texto `Interrompido`, sem cor nova.
 
 ### Banner de fallback
 
-Aparece quando o pipeline entra em Search, acima da resposta. Fundo `--color-accent-tint`, borda `--color-accent`, raio `--radius-sm`, ícone de busca em ciano, `role="status"`. O texto explica que o contexto local foi insuficiente e que o sistema complementa com a web.
+Aparece no painel do pipeline, acima da timeline, quando o grafo entra em Search. Fundo `--color-accent-tint`, borda `--color-accent`, raio `--radius-sm`, ícone de busca em ciano, `role="status"`. O texto explica que o contexto local foi insuficiente e que o sistema complementa com a web.
 
 ### Disclaimer
 

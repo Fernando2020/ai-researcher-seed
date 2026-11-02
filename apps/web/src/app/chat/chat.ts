@@ -7,6 +7,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { GraphPanelComponent } from '../graph/graph-panel/graph-panel';
 import { ChatStore } from '../state/chat-store';
 import type { Mensagem } from '../state/chat-store';
 import { parseAnswer } from '../state/citation';
@@ -19,6 +20,7 @@ interface MensagemNaTela extends Mensagem {
 
 @Component({
   selector: 'app-chat',
+  imports: [GraphPanelComponent],
   templateUrl: './chat.html',
   styleUrl: './chat.scss',
 })

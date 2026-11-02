@@ -1,0 +1,86 @@
+<h2 class="title">Pipeline de raciocínio</h2>
+
+@if (caiuNoFallback()) {
+<div class="banner" role="status">
+  <svg
+    class="banner-icon"
+    aria-hidden="true"
+    width="22"
+    height="22"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+  >
+    <circle cx="11" cy="11" r="7"></circle>
+    <path d="m20 20-4-4"></path>
+  </svg>
+  <p class="banner-text">
+    <strong>Buscando também na web.</strong> O contexto local não foi suficiente para esta pergunta,
+    então o sistema complementa com fontes externas.
+  </p>
+</div>
+}
+
+<ol class="timeline">
+  @for (etapa of etapas(); track $index) {
+  <li class="step">
+    <span class="icon" aria-hidden="true">
+      @switch (etapa.estado) { @case ('em-execucao') {
+      <svg
+        class="spinner"
+        width="26"
+        height="26"
+        viewBox="0 0 26 26"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="3"
+        stroke-linecap="round"
+      >
+        <path d="M13 3a10 10 0 1 1-10 10"></path>
+      </svg>
+      } @case ('concluida') {
+      <svg width="26" height="26" viewBox="0 0 26 26">
+        <circle cx="13" cy="13" r="12" fill="currentColor"></circle>
+        <path
+          class="check"
+          d="m8 13.5 3.5 3.5 6.5-7.5"
+          fill="none"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
+      </svg>
+      } @case ('interrompida') {
+      <svg
+        width="26"
+        height="26"
+        viewBox="0 0 26 26"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      >
+        <circle cx="13" cy="13" r="11"></circle>
+        <path d="m9 9 8 8m0-8-8 8"></path>
+      </svg>
+      } }
+    </span>
+    <div class="content">
+      <div class="heading">
+        <h3 class="label">{{ etapa.rotulo }}</h3>
+        <span class="status" [class.status--running]="etapa.estado === 'em-execucao'">
+          {{ etapa.status }}
+        </span>
+        @if (etapa.duracao; as duracao) {
+        <span class="duration">{{ duracao }}</span>
+        }
+      </div>
+      <p class="description">{{ etapa.descricao }}</p>
+    </div>
+  </li>
+  } @empty {
+  <li class="empty">As etapas aparecem aqui quando você enviar uma pergunta.</li>
+  }
+</ol>
