@@ -6,7 +6,8 @@ export interface HealthRouteOptions {
 }
 
 const healthRoute: FastifyPluginAsync<HealthRouteOptions> = async (app, { checkDatabase }) => {
-  app.get('/health', async () => {
+  // Fora do rate limit: quem checa a saúde da API não pode receber 429 no lugar da resposta.
+  app.get('/health', { config: { rateLimit: false } }, async () => {
     const databaseOk = await checkDatabase();
 
     return healthResponseSchema.parse({

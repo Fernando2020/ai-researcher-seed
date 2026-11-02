@@ -1,9 +1,11 @@
+import rateLimit from '@fastify/rate-limit';
 import Fastify from 'fastify';
 import { registroDeMetricas as registroDeMetricasPadrao } from '@hero/agent';
 import { mcpHttpPlugin } from '@hero/mcp-server';
 import type { GetGraph } from '@hero/mcp-server';
 import { registrarTratamentoDeErros } from './error-handler.js';
 import { ChatIndisponivelError } from './errors.js';
+import { criarOpcoesRateLimit, lerSaltosDeProxy } from './rate-limit.js';
 import chatRoute from './routes/chat.js';
 import type { ChatRouteOptions } from './routes/chat.js';
 import healthRoute from './routes/health.js';
@@ -33,9 +35,11 @@ export function build({
   getMcpGraph = semGrafo,
   registroDeMetricas = registroDeMetricasPadrao,
 }: BuildOptions = {}) {
-  const app = Fastify({ logger: true });
+  const app = Fastify({ logger: true, trustProxy: lerSaltosDeProxy() });
 
   registrarTratamentoDeErros(app);
+  // Antes das rotas: o plugin só alcança as que forem registradas depois dele.
+  app.register(rateLimit, criarOpcoesRateLimit());
 
   app.register(
     async (api) => {

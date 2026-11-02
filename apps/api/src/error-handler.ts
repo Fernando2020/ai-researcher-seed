@@ -41,6 +41,14 @@ export function paraProblema(erro: unknown): ProblemDetails {
     return problema(503, 'Chat indisponível', erro.message);
   }
   if (ehErroDeClienteDoFastify(erro)) {
+    // Quem lança o 429 é o @fastify/rate-limit, que já deixou o Retry-After na resposta.
+    if (erro.statusCode === 429) {
+      return problema(
+        429,
+        'Muitas requisições',
+        'Você fez muitas requisições em pouco tempo. Aguarde um instante e tente de novo.',
+      );
+    }
     return problema(erro.statusCode ?? 400, 'Requisição inválida', erro.message);
   }
   // Qualquer outro erro é falha nossa: a mensagem e a stack ficam no log, nunca na resposta.
