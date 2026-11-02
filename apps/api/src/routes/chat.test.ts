@@ -66,6 +66,18 @@ describe('POST /api/chat', () => {
     vi.unstubAllEnvs();
   });
 
+  it('orçamento esgotado: responde 429 em problem+json, sem abrir o SSE nem chamar o grafo', async () => {
+    vi.stubEnv('DAILY_TOKEN_BUDGET', '0');
+    const stream = vi.fn<GraphLike['stream']>();
+
+    const response = await postChat({ stream }, { question: 'Qual a receita da Vale?' });
+
+    expect(response.statusCode).toBe(429);
+    expect(response.headers['content-type']).toContain('application/problem+json');
+    expect(response.json()).toMatchObject({ status: 429, title: 'Limite diário atingido' });
+    expect(stream).not.toHaveBeenCalled();
+  });
+
   it('passa um handler novo do Langfuse a cada pergunta, quando as chaves existem', async () => {
     vi.stubEnv('LANGFUSE_PUBLIC_KEY', 'pk-teste');
     vi.stubEnv('LANGFUSE_SECRET_KEY', 'sk-teste');

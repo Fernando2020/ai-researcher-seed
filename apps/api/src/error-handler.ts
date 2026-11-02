@@ -2,7 +2,7 @@ import type { FastifyError, FastifyInstance, FastifyReply, FastifyRequest } from
 import { CircuitoAbertoError } from '@hero/agent';
 import { problemDetailsSchema, ZodError } from '@hero/contracts';
 import type { ProblemDetails } from '@hero/contracts';
-import { ChatIndisponivelError } from './errors.js';
+import { ChatIndisponivelError, OrcamentoEsgotadoError } from './errors.js';
 
 function problema(status: number, title: string, detail: string): ProblemDetails {
   return problemDetailsSchema.parse({ type: 'about:blank', title, status, detail });
@@ -39,6 +39,9 @@ export function paraProblema(erro: unknown): ProblemDetails {
   }
   if (erro instanceof ChatIndisponivelError) {
     return problema(503, 'Chat indisponível', erro.message);
+  }
+  if (erro instanceof OrcamentoEsgotadoError) {
+    return problema(429, 'Limite diário atingido', erro.message);
   }
   if (ehErroDeClienteDoFastify(erro)) {
     // Quem lança o 429 é o @fastify/rate-limit, que já deixou o Retry-After na resposta.

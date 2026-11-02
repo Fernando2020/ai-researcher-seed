@@ -1,9 +1,9 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { criarCallbacksDeTracing, criarMetricsCallback } from '@hero/agent';
+import { criarCallbacksDeTracing, criarMetricsCallback, orcamentoEsgotado } from '@hero/agent';
 import type { BaseCallbackHandler } from '@hero/agent';
 import { chatRequestSchema } from '@hero/contracts';
 import type { ChatEvent } from '@hero/contracts';
-import { ChatIndisponivelError } from '../errors.js';
+import { ChatIndisponivelError, OrcamentoEsgotadoError } from '../errors.js';
 import { paraEventos } from './chat-event.js';
 import type { GraphChunk } from './chat-event.js';
 
@@ -31,6 +31,9 @@ const MENSAGEM_ERRO = 'Não foi possível concluir a resposta. Tente novamente e
 
 const chatRoute: FastifyPluginAsync<ChatRouteOptions> = async (app, { getGraph }) => {
   app.post('/chat', async (request, reply) => {
+    // Antes de qualquer byte do SSE: depois do writeHead, o status 200 já teria ido embora.
+    if (orcamentoEsgotado()) throw new OrcamentoEsgotadoError();
+
     // Corpo inválido lança ZodError, e grafo indisponível lança ChatIndisponivelError: o error
     // handler central transforma os dois em problem+json. A rota não monta resposta de erro.
     const body = chatRequestSchema.parse(request.body);

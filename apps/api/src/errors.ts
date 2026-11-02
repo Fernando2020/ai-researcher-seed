@@ -7,3 +7,11 @@ export class ChatIndisponivelError extends Error {
     this.name = 'ChatIndisponivelError';
   }
 }
+
+// O orçamento diário de tokens acabou. Volta sozinho na virada do dia UTC.
+export class OrcamentoEsgotadoError extends Error {
+  constructor() {
+    super('O limite diário de uso foi atingido. O serviço volta à meia-noite UTC.');
+    this.name = 'OrcamentoEsgotadoError';
+  }
+}

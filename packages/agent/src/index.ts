@@ -37,6 +37,7 @@ export { AVISO_GUARDRAIL, contemRecomendacao, formatarResposta } from './answer/
 export { criarGrafoReal, obterGrafoReal } from './criar-grafo.js';
 export { criarCallbacksDeTracing, registrarTracing } from './tracing.js';
 export { criarMetricsCallback, registroDeMetricas } from './metrics/llm-metrics.js';
+export { orcamentoEsgotado } from './metrics/orcamento.js';
 export type { BaseCallbackHandler } from '@langchain/core/callbacks/base';
 export { criarChatModelReal } from './llm.js';
 export { buscarPaginaDemo, makeDemoSearchProvider } from './demo/search-demo.js';

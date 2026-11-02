@@ -2,6 +2,7 @@ import { BaseCallbackHandler } from '@langchain/core/callbacks/base';
 import type { LLMResult } from '@langchain/core/outputs';
 import type { UsageMetadata } from '@langchain/core/messages';
 import { Counter, Registry } from 'prom-client';
+import { consumirOrcamento } from './orcamento.js';
 import { PRECOS_USD_POR_MILHAO } from './precos.js';
 
 // Registry próprio, em vez do global do prom-client: aqui só entra o que este projeto declarou.
@@ -47,6 +48,7 @@ function registrarUso(node: string, model: string, uso: UsageMetadata): void {
   llmTokensTotal.inc({ node, model, kind: 'cached_input' }, cachedInput);
   llmTokensTotal.inc({ node, model, kind: 'output' }, output);
   llmTokensTotal.inc({ node, model, kind: 'reasoning' }, reasoning);
+  consumirOrcamento(uso.total_tokens);
 
   const preco = PRECOS_USD_POR_MILHAO[model];
   if (!preco) {
