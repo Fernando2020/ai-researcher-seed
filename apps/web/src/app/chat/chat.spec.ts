@@ -69,9 +69,32 @@ describe('Chat', () => {
     fixture.detectChanges();
   }
 
-  it('mantém o wordmark e o disclaimer regulatório visíveis', () => {
+  it('mostra o wordmark no header', () => {
     expect(tela().querySelector('header h1')?.textContent).toContain('AI RESEARCHER');
-    expect(tela().querySelector('.disclaimer')?.textContent).toContain('informa, não recomenda');
+  });
+
+  describe('disclaimer regulatório', () => {
+    const TEXTO =
+      'Este assistente apresenta informações públicas, não recomendação de investimento.';
+    const faixa = () => tela().querySelector('.disclaimer') as HTMLElement;
+
+    it('aparece entre o header e a conversa', () => {
+      expect(faixa().textContent?.trim()).toBe(TEXTO);
+      expect(faixa().previousElementSibling?.tagName).toBe('HEADER');
+      expect(faixa().nextElementSibling?.querySelector('.messages')).not.toBeNull();
+    });
+
+    it('não tem como ser fechado', () => {
+      expect(faixa().querySelector('button')).toBeNull();
+    });
+
+    it('continua na tela durante e depois de uma resposta, e também em erro', () => {
+      for (const estado of ['aguardando', 'revelando', 'concluida', 'erro'] as const) {
+        mostrar(pergunta, resposta('Texto.', estado));
+
+        expect(faixa().textContent?.trim()).toBe(TEXTO);
+      }
+    });
   });
 
   it('começa sem mensagens, com a textarea rotulada', () => {
