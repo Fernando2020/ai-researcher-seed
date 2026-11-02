@@ -73,7 +73,7 @@ describe('gateway MCP em /api/mcp', () => {
     // Uma fonte só: as duas rotas pediram o grafo à mesma função, e o mesmo objeto atendeu
     // as duas — o MCP pelo invoke, o chat pelo stream.
     expect(getGraph).toHaveBeenCalledTimes(2);
-    expect(grafo.invoke).toHaveBeenCalledWith({ question: 'pergunta pelo MCP' });
+    expect(grafo.invoke).toHaveBeenCalledWith({ question: 'pergunta pelo MCP' }, { callbacks: [] });
     expect(grafo.stream).toHaveBeenCalledWith(
       { question: 'pergunta pelo chat' },
       expect.objectContaining({ streamMode: 'updates' }),

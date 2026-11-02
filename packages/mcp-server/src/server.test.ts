@@ -3,6 +3,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { criarServidorMcp, DESCRICAO_PERGUNTAR } from './server.js';
+import type { GrafoPerguntar } from './server.js';
 import type { GetGraph } from './server.js';
 
 // Cliente MCP de verdade conversando com o servidor de verdade, pelo transporte em memória do
@@ -70,10 +71,30 @@ describe('servidor MCP — tool perguntar', () => {
       arguments: { pergunta: 'Qual a receita da Vale no 3T25?' },
     });
 
-    expect(invoke).toHaveBeenCalledWith({ question: 'Qual a receita da Vale no 3T25?' });
+    expect(invoke).toHaveBeenCalledWith(
+      { question: 'Qual a receita da Vale no 3T25?' },
+      { callbacks: [] },
+    );
     expect(resultado.isError).toBeFalsy();
     expect(textoDe(resultado)).toContain('[CVM VALE 3T25]');
     expect(textoDe(resultado)).toContain('data-base 30/09/2025');
+  });
+
+  it('passa um handler novo do Langfuse a cada chamada, quando as chaves existem', async () => {
+    vi.stubEnv('LANGFUSE_PUBLIC_KEY', 'pk-teste');
+    vi.stubEnv('LANGFUSE_SECRET_KEY', 'sk-teste');
+    const invoke = vi.fn<GrafoPerguntar['invoke']>(() => Promise.resolve({ response: 'ok' }));
+    const client = await conectar(() => ({ invoke }));
+
+    await client.callTool({ name: 'perguntar', arguments: { pergunta: 'a' } });
+    await client.callTool({ name: 'perguntar', arguments: { pergunta: 'b' } });
+    vi.unstubAllEnvs();
+
+    const [primeiro] = invoke.mock.calls[0]?.[1].callbacks ?? [];
+    const [segundo] = invoke.mock.calls[1]?.[1].callbacks ?? [];
+    expect(primeiro).toBeDefined();
+    expect(segundo).toBeDefined();
+    expect(primeiro).not.toBe(segundo);
   });
 
   it('pede o grafo só na chamada da tool, e a cada chamada (a memoização é do agent)', async () => {

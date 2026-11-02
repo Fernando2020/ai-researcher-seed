@@ -1,5 +1,7 @@
-import { obterGrafoReal } from '@hero/agent';
+import { obterGrafoReal, registrarTracing } from '@hero/agent';
 import { build } from './app.js';
+
+registrarTracing();
 
 // O grafo real nasce na primeira pergunta, não aqui: sem a configuração (GOOGLE_CLOUD_PROJECT_ID,
 // SERPER_API_KEY...), a API sobe mesmo assim — o /health responde, e só /chat e /mcp falham.

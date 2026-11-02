@@ -1,11 +1,15 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { criarCallbacksDeTracing } from '@hero/agent';
 import { chatRequestSchema } from '@hero/contracts';
 
 // Só o que a tool usa do grafo. O grafo compilado do LangGraph satisfaz esta interface sem
 // adaptador; nos testes, um objeto com um `invoke` fake basta — sem Postgres, sem Vertex AI.
 export interface GrafoPerguntar {
-  invoke(input: { question: string }): Promise<{ response: string }>;
+  invoke(
+    input: { question: string },
+    options: { callbacks: ReturnType<typeof criarCallbacksDeTracing> },
+  ): Promise<{ response: string }>;
 }
 
 // Função, não o grafo pronto: o servidor só pede o grafo quando a tool é chamada. Assim o
@@ -48,7 +52,10 @@ export function criarServidorMcp(getGraph: GetGraph): McpServer {
     },
     async ({ pergunta }): Promise<CallToolResult> => {
       try {
-        const { response } = await getGraph().invoke({ question: pergunta });
+        const { response } = await getGraph().invoke(
+          { question: pergunta },
+          { callbacks: criarCallbacksDeTracing() },
+        );
         return { content: [{ type: 'text', text: response }] };
       } catch (erro) {
         // A exceção crua nunca volta pro cliente: o detalhe vai pro stderr (no transporte stdio,

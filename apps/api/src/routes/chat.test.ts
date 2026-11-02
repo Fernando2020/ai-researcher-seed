@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { RetrievedDoc } from '@hero/agent';
 import { build } from '../app.js';
 import type { GraphChunk } from './chat-event.js';
@@ -62,6 +62,25 @@ function postChat(graph: GraphLike | null, payload: unknown) {
 }
 
 describe('POST /api/chat', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('passa um handler novo do Langfuse a cada pergunta, quando as chaves existem', async () => {
+    vi.stubEnv('LANGFUSE_PUBLIC_KEY', 'pk-teste');
+    vi.stubEnv('LANGFUSE_SECRET_KEY', 'sk-teste');
+    const stream = vi.fn<GraphLike['stream']>(() => Promise.resolve((async function* () {})()));
+
+    await postChat({ stream }, { question: 'primeira' });
+    await postChat({ stream }, { question: 'segunda' });
+
+    const [primeiro] = stream.mock.calls[0]?.[1].callbacks ?? [];
+    const [segundo] = stream.mock.calls[1]?.[1].callbacks ?? [];
+    expect(primeiro).toBeDefined();
+    expect(segundo).toBeDefined();
+    expect(primeiro).not.toBe(segundo);
+  });
+
   it('transmite um evento por nó, com os headers que impedem buffering', async () => {
     const graph = grafoFake([
       { retrieve: { documents: [documentoCvm] } },

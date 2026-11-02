@@ -44,7 +44,10 @@ describe('mcpHttpPlugin', () => {
     });
 
     expect(tools.map((tool) => tool.name)).toEqual(['perguntar']);
-    expect(grafo.invoke).toHaveBeenCalledWith({ question: 'Qual a receita da Vale no 3T25?' });
+    expect(grafo.invoke).toHaveBeenCalledWith(
+      { question: 'Qual a receita da Vale no 3T25?' },
+      { callbacks: [] },
+    );
     expect((resultado.content as { text: string }[])[0].text).toContain('[CVM VALE 3T25]');
     await client.close();
   });

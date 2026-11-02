@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { criarCallbacksDeTracing } from '@hero/agent';
 import { chatRequestSchema } from '@hero/contracts';
 import type { ChatEvent } from '@hero/contracts';
 import { ChatIndisponivelError } from '../errors.js';
@@ -10,7 +11,11 @@ import type { GraphChunk } from './chat-event.js';
 export interface GraphLike {
   stream(
     input: { question: string },
-    options: { streamMode: 'updates'; signal?: AbortSignal },
+    options: {
+      streamMode: 'updates';
+      signal?: AbortSignal;
+      callbacks: ReturnType<typeof criarCallbacksDeTracing>;
+    },
   ): Promise<AsyncIterable<GraphChunk>>;
 }
 
@@ -60,7 +65,7 @@ const chatRoute: FastifyPluginAsync<ChatRouteOptions> = async (app, { getGraph }
     try {
       const chunks = await graph.stream(
         { question: body.question },
-        { streamMode: 'updates', signal: abort.signal },
+        { streamMode: 'updates', signal: abort.signal, callbacks: criarCallbacksDeTracing() },
       );
       for await (const evento of paraEventos(chunks)) {
         escrever(evento);

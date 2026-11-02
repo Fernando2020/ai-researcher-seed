@@ -35,6 +35,7 @@ export { makeAnswerNode } from './nodes/answer.js';
 export type { AnswerLlmClient, AnswerState } from './nodes/answer.js';
 export { AVISO_GUARDRAIL, contemRecomendacao, formatarResposta } from './answer/format-resposta.js';
 export { criarGrafoReal, obterGrafoReal } from './criar-grafo.js';
+export { criarCallbacksDeTracing, registrarTracing } from './tracing.js';
 export { criarChatModelReal } from './llm.js';
 export { buscarPaginaDemo, makeDemoSearchProvider } from './demo/search-demo.js';
 export { criarBuscarPagina } from './web/criar-buscar-pagina.js';
