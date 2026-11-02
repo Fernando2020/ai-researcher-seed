@@ -1,0 +1,25 @@
+<header class="header">
+  <h1 class="wordmark">AI RESEARCHER</h1>
+  <p class="subtitle">Indicadores de 20 empresas da B3 · dados da CVM</p>
+  <ng-content />
+</header>
+
+<p class="disclaimer">
+  Este assistente informa, não recomenda. Consultoria de valores mobiliários é atividade regulada
+  pela CVM. Confira os dados nas fontes citadas.
+</p>
+
+<section class="messages" aria-label="Conversa"></section>
+
+<!-- O envio ainda não faz nada: o preventDefault só impede o recarregamento da página. -->
+<form class="composer" (submit)="$event.preventDefault()">
+  <label class="visually-hidden" for="pergunta">Sua pergunta</label>
+  <input
+    id="pergunta"
+    class="input"
+    type="text"
+    maxlength="1000"
+    placeholder="Pergunte sobre as 20 empresas da B3"
+  />
+  <button class="send" type="submit">Enviar</button>
+</form>
