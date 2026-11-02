@@ -167,7 +167,7 @@ pnpm seed
 pnpm dev
 ```
 
-O `pnpm seed` chama a Vertex AI: ele exige `GOOGLE_CLOUD_PROJECT_ID` e credencial do Google Cloud. Para rodar sem isso, pule esse passo e use `DEMO=true` no `.env`.
+O `pnpm seed` chama a Vertex AI: ele exige `GOOGLE_CLOUD_PROJECT_ID` e credencial do Google Cloud. Para rodar sem isso, pule esse passo e use `DEMO=true` no `.env`. Em modo demonstração o chat não toca no banco; sem o Postgres de pé, só o `/api/health` responde `degraded`.
 
 | Comando | O que faz |
 | --------------------- | ---------------------------------------------------- |
@@ -180,6 +180,23 @@ O `pnpm seed` chama a Vertex AI: ele exige `GOOGLE_CLOUD_PROJECT_ID` e credencia
 | `pnpm db:migrate` | Aplica as migrações pendentes |
 | `pnpm seed` | Popula o pgvector a partir dos JSONs versionados |
 | `pnpm capstone:check` | Verificações de produção |
+
+## Em produção
+
+A instância deste repositório está em <https://ai-researcher-capstone-fn.web.app>.
+
+- **Observabilidade:** cada pergunta vira um trace no Langfuse, com custo e latência por nó, quando as chaves `LANGFUSE_*` existem. `GET /api/metrics` expõe `llm_tokens_total` e `llm_cost_usd_total` no formato Prometheus, a partir dos tokens informados pela Vertex AI.
+- **Rate limit:** `RATE_LIMIT_MAX` requisições por `RATE_LIMIT_WINDOW` milissegundos, por IP. `/api/health` e `/api/metrics` ficam de fora. `TRUST_PROXY_HOPS` diz quantos proxies há até a API: são 2 em produção, pelo Firebase Hosting.
+- **Orçamento diário:** `DAILY_TOKEN_BUDGET` tokens por dia UTC. Esgotado, o `/api/chat` responde 429 em `application/problem+json`.
+
+### Limitações conhecidas
+
+- O canary e o rollback ainda não existem no workflow, e os dashboards do Grafana Cloud também não.
+- `pnpm capstone:check` cobre 3 dos 12 itens do checklist, e `evals/` tem o dataset, mas não o runner.
+- `/api/metrics` não tem autenticação: os totais de tokens e custo são públicos.
+- Rate limit e orçamento ficam em memória, por instância. Com várias instâncias o limite real se multiplica, e reiniciar zera a conta. O orçamento também não bloqueia o `/api/mcp`, embora conte o que ele gasta. Isso não substitui um alerta de orçamento na conta do Google Cloud.
+- Pela URL direta do Cloud Run há um proxy a menos, então o `X-Forwarded-For` pode ser forjado para burlar o rate limit.
+- A tabela de preços é mantida à mão em `packages/agent/src/metrics/precos.ts`. O preço promocional do `gemini-3.6-flash` termina em 31/12/2026.
 
 ## Estrutura
 
