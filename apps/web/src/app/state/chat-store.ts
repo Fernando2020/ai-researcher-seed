@@ -1,5 +1,6 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { ChatService } from '../api/chat.service';
+import { GraphStore } from './graph-store';
 import { tokenize } from './tokenize';
 
 export const MS_POR_PALAVRA = 70;
@@ -18,6 +19,7 @@ export interface Mensagem {
 @Injectable({ providedIn: 'root' })
 export class ChatStore {
   private readonly chatService = inject(ChatService);
+  private readonly graphStore = inject(GraphStore);
 
   private readonly _mensagens = signal<Mensagem[]>([]);
   readonly mensagens = this._mensagens.asReadonly();
@@ -46,9 +48,11 @@ export class ChatStore {
     const idResposta = this.adicionarPergunta(pergunta);
     const conexao = new AbortController();
     this.conexao = conexao;
+    this.graphStore.iniciar();
 
     try {
       for await (const evento of this.chatService.ask(pergunta, conexao.signal)) {
+        this.graphStore.aplicar(evento);
         if (evento.type === 'answer') {
           this.revelar(idResposta, evento.response);
           return;
@@ -93,6 +97,7 @@ export class ChatStore {
   }
 
   private mostrarErro(id: number): void {
+    this.graphStore.interromper();
     this.atualizar(id, { texto: MENSAGEM_ERRO, estado: 'erro' });
   }
 

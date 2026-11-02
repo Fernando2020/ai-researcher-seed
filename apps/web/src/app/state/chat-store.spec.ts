@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChatService } from '../api/chat.service';
 import type { GraphEvent } from '../api/chat.service';
 import { ChatStore, MENSAGEM_ERRO, MS_POR_PALAVRA } from './chat-store';
+import { GraphStore } from './graph-store';
 
 const ANSWER: GraphEvent = { type: 'answer', response: 'Receita de R$ 56,7 bilhões.' };
 const PALAVRAS = 5;
@@ -138,6 +139,32 @@ describe('ChatStore.send', () => {
     expect(store.mensagens()).toHaveLength(4);
     expect(store.mensagens()[1].texto).toBe('Receita de R$ 56,7 bilhões.');
     expect(store.mensagens()[3].texto).toBe('Receita ');
+  });
+});
+
+describe('ChatStore e o GraphStore', () => {
+  const etapas = () =>
+    TestBed.inject(GraphStore)
+      .etapas()
+      .map((etapa) => `${etapa.no}:${etapa.estado}`);
+
+  it('repassa cada evento do stream, com a primeira etapa já em execução', async () => {
+    const { store } = montar([{ type: 'retrieve', documents: [] }, ANSWER]);
+
+    void store.send('x');
+    expect(etapas()).toEqual(['retrieve:em-execucao']);
+
+    await avancar(0);
+    expect(etapas()).toEqual(['retrieve:concluida', 'grade:concluida']);
+  });
+
+  it('interrompe a etapa em execução quando a chamada falha', async () => {
+    const { store } = montar([{ type: 'retrieve', documents: [] }], new Error('falha'));
+
+    void store.send('x');
+    await avancar(0);
+
+    expect(etapas()).toEqual(['retrieve:concluida', 'grade:interrompida']);
   });
 });
 

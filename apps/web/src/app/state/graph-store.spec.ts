@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GraphEvent } from '../api/chat.service';
 import { GraphStore, MAX_ITERATIONS } from './graph-store';
 
@@ -15,8 +15,13 @@ describe('GraphStore', () => {
   let store: GraphStore;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     store = TestBed.inject(GraphStore);
     store.iniciar();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   const caminho = () => store.etapas().map((etapa) => `${etapa.no}:${etapa.estado}`);
@@ -95,5 +100,30 @@ describe('GraphStore', () => {
     store.iniciar();
 
     expect(caminho()).toEqual(['retrieve:em-execucao']);
+  });
+
+  it('mede a duração de cada etapa, do início até o evento que a conclui', () => {
+    vi.advanceTimersByTime(1200);
+    store.aplicar(RETRIEVE);
+    vi.advanceTimersByTime(800);
+    store.aplicar(grade(true, 1));
+
+    expect(store.etapas().map((etapa) => etapa.duracaoMs)).toEqual([1200, 800, null]);
+  });
+
+  it('interromper encerra a etapa em execução, com a duração até ali', () => {
+    vi.advanceTimersByTime(500);
+
+    store.interromper();
+
+    expect(store.etapas()[0]).toMatchObject({ estado: 'interrompida', duracaoMs: 500 });
+  });
+
+  it('interromper não altera uma etapa já concluída', () => {
+    store.aplicar(ANSWER);
+
+    store.interromper();
+
+    expect(caminho()).toEqual(['retrieve:concluida']);
   });
 });
