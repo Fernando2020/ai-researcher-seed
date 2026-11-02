@@ -1,17 +1,10 @@
-import { Component, inject, resource } from '@angular/core';
-import { HealthService } from './api/health.service';
-import { Chat } from './chat/chat';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [Chat],
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
-  private readonly healthService = inject(HealthService);
-
-  protected readonly health = resource({
-    loader: () => this.healthService.fetchHealth(),
-  });
-}
+export class App {}

@@ -1,9 +1,1 @@
-<app-chat>
-  @if (health.isLoading()) {
-  <p class="health">Consultando /api/health...</p>
-  } @else if (health.error()) {
-  <p class="health">Não foi possível consultar /api/health.</p>
-  } @else if (health.value(); as value) {
-  <p class="health">status: {{ value.status }} · database: {{ value.database }}</p>
-  }
-</app-chat>
+<router-outlet />
