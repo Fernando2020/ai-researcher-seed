@@ -115,6 +115,16 @@ describe('Chat', () => {
       expect(textarea().value).toBe('');
     });
 
+    it('limpa o campo mesmo quando o texto é enviado antes de qualquer render', () => {
+      textarea().value = 'Colado e enviado na hora';
+      textarea().dispatchEvent(new Event('input'));
+
+      pressionarEnter();
+
+      expect(send).toHaveBeenCalledWith('Colado e enviado na hora');
+      expect(textarea().value).toBe('');
+    });
+
     it('Enter envia, sem inserir quebra de linha', () => {
       digitar('Qual a receita?');
 

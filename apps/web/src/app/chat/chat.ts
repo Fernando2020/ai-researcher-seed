@@ -50,6 +50,7 @@ export class Chat {
   );
 
   private readonly areaDeMensagens = viewChild.required<ElementRef<HTMLElement>>('areaDeMensagens');
+  private readonly campo = viewChild.required<ElementRef<HTMLTextAreaElement>>('campo');
 
   constructor() {
     // Depois que cada palavra entra na tela, a conversa rola até o fim.
@@ -77,5 +78,8 @@ export class Chat {
     if (!this.podeEnviar()) return;
     void this.store.send(this.pergunta());
     this.pergunta.set('');
+    // Limpa o DOM também: se o texto foi colado e enviado antes de um render, o signal foi de ''
+    // a '' do ponto de vista do binding, que então não atualizaria o campo.
+    this.campo().nativeElement.value = '';
   }
 }

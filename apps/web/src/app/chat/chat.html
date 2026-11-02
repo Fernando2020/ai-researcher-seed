@@ -74,6 +74,7 @@
     <form class="composer" (submit)="$event.preventDefault(); enviar()">
       <label class="visually-hidden" for="pergunta">Sua pergunta</label>
       <textarea
+        #campo
         id="pergunta"
         class="input"
         rows="1"
