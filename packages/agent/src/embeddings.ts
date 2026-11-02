@@ -1,10 +1,24 @@
 import { VertexAIEmbeddings } from '@langchain/google-vertexai';
 
 import { EMBEDDING_DIMENSIONS } from './db/schema.js';
+import type { DocumentEmbeddingsClient } from './nodes/web-search.js';
+import type { EmbeddingsClient } from './nodes/retrieve.js';
 
-// Cliente real, que chama a Vertex AI pela rede. Fica numa função própria porque o modo
-// DEMO (aula futura) troca esse ponto por um fake sem rede — quem consome embeddings não
-// deve saber qual dos dois recebeu.
+// O cliente de embeddings do grafo. Único ponto que lê DEMO pros embeddings: em modo demo, a busca
+// por similaridade também é fixture, então o valor do vetor não importa.
+export function criarEmbeddings(): EmbeddingsClient & DocumentEmbeddingsClient {
+  if (process.env.DEMO !== 'true') return criarEmbeddingsReal();
+
+  const vetorDeZeros = () => new Array<number>(EMBEDDING_DIMENSIONS).fill(0);
+  return {
+    embedQuery: () => Promise.resolve(vetorDeZeros()),
+    embedDocuments: (textos) => Promise.resolve(textos.map(vetorDeZeros)),
+  };
+}
+
+// Cliente real, que chama a Vertex AI pela rede. O seed usa esta função direto, e nunca roda em
+// modo demo: vetores de zeros no índice quebrariam a busca de verdade. Em modo real, o nó
+// webSearch também usa o embedDocuments() para gravar os trechos da web.
 export function criarEmbeddingsReal(): VertexAIEmbeddings {
   const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
   if (!projectId) {

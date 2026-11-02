@@ -1,7 +1,8 @@
 import { db } from './db/client.js';
 import { buscarDocumentosSimilares } from './db/retrieve-similar.js';
 import { salvarDocumentosWeb } from './db/save-web-documents.js';
-import { criarEmbeddingsReal } from './embeddings.js';
+import { criarAnswerLlmDemo, criarBuscarDemo, criarGradeLlmDemo } from './demo/grafo-demo.js';
+import { criarEmbeddings } from './embeddings.js';
 import { buildGraph } from './graph.js';
 import { criarChatModelReal } from './llm.js';
 import { criarSearchProvider } from './search/index.js';
@@ -9,17 +10,28 @@ import { criarBuscarPagina } from './web/criar-buscar-pagina.js';
 
 // O único lugar que liga o grafo às dependências reais: Vertex AI, Postgres, busca web.
 // Lança erro se faltar configuração (GOOGLE_CLOUD_PROJECT_ID, SERPER_API_KEY...) — quem chama
-// decide o que fazer com isso. Com DEMO=true, só a busca web (provedor e download de página)
-// vira fixture; embeddings, grade e answer continuam na Vertex AI.
+// decide o que fazer com isso. Com DEMO=true, o grafo inteiro vira fixture: nada de Vertex AI,
+// Postgres ou busca web, e nenhuma credencial é exigida.
 export function criarGrafoReal() {
+  const demo = process.env.DEMO === 'true';
+
   return buildGraph({
-    embeddings: criarEmbeddingsReal(),
-    buscar: (embedding, k) => buscarDocumentosSimilares(db, embedding, k),
-    gradeLlm: criarChatModelReal(process.env.MODEL_GRADE ?? 'gemini-3.5-flash-lite'),
+    embeddings: criarEmbeddings(),
+    buscar: demo
+      ? criarBuscarDemo()
+      : (embedding, k) => buscarDocumentosSimilares(db, embedding, k),
+    gradeLlm: demo
+      ? criarGradeLlmDemo()
+      : criarChatModelReal(process.env.MODEL_GRADE ?? 'gemini-3.5-flash-lite'),
     searchProvider: criarSearchProvider(),
     buscarPagina: criarBuscarPagina(),
-    salvarDocumentosWeb: (documentos) => salvarDocumentosWeb(db, documentos),
-    answerLlm: criarChatModelReal(process.env.MODEL_ANSWER ?? 'gemini-3.6-flash'),
+    // Em demo o grade sempre aprova, então o webSearch não roda; e, se rodasse, não grava nada.
+    salvarDocumentosWeb: demo
+      ? () => Promise.resolve()
+      : (documentos) => salvarDocumentosWeb(db, documentos),
+    answerLlm: demo
+      ? criarAnswerLlmDemo()
+      : criarChatModelReal(process.env.MODEL_ANSWER ?? 'gemini-3.6-flash'),
   });
 }
 

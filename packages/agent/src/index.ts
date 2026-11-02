@@ -3,7 +3,7 @@ export { db, pool } from './db/client.js';
 export type { Database } from './db/client.js';
 export { buscarDocumentosSimilares } from './db/retrieve-similar.js';
 export type { RetrievedDoc } from './db/retrieve-similar.js';
-export { criarEmbeddingsReal } from './embeddings.js';
+export { criarEmbeddings, criarEmbeddingsReal } from './embeddings.js';
 export { makeGradeNode } from './nodes/grade.js';
 export type { GradeLlmClient, GradeState } from './nodes/grade.js';
 export { makeRetrieveNode } from './nodes/retrieve.js';
