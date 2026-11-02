@@ -123,6 +123,12 @@ describe('answerPrompt', () => {
     expect(prompt).toContain('preço-alvo');
   });
 
+  it('pede texto corrido, sem Markdown: a interface mostra o texto como ele vem', () => {
+    const prompt = answerPrompt({ question: 'q', documents: [documentoCvm], sufficient: true });
+
+    expect(prompt).toContain('Não use Markdown');
+  });
+
   it('só inclui o aviso de contexto incompleto quando sufficient é false', () => {
     const base = { question: 'q', documents: [documentoCvm] };
 

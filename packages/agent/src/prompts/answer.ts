@@ -39,5 +39,6 @@ Regras:
    Se a informação não estiver no contexto, diga que não a encontrou.
 3. Cite a fonte de cada informação usando o rótulo entre colchetes do documento, como [CVM VALE 3T25]
    ou [WEB "título"], e informe o período a que o dado se refere.
-4. Responda em português, de forma direta.`;
+4. Responda em português, de forma direta, em texto corrido e parágrafos curtos. Não use Markdown:
+   nada de asteriscos, cerquilhas ou listas. A interface mostra o texto exatamente como ele vem.`;
 }
