@@ -199,10 +199,65 @@ describe('Chat', () => {
       expect(bolha?.textContent).toContain('Receita de R$ 4,9 bilhões.');
       expect(bolha?.textContent).not.toContain('Fontes:');
 
-      const link = tela().querySelector('a.citation') as HTMLAnchorElement;
-      expect(link.getAttribute('href')).toBe(ZIP);
-      expect(link.textContent).toContain('data-base 31/03/2026');
-      expect(link.textContent).toContain('Base local (CVM)');
+      const pilula = tela().querySelector('button.citation') as HTMLButtonElement;
+      expect(pilula.textContent).toContain('data-base 31/03/2026');
+      expect(pilula.textContent).toContain('Base local (CVM)');
+    });
+
+    describe('painel da citação', () => {
+      const comCitacao = () =>
+        mostrar(
+          pergunta,
+          resposta(`Corpo.\n\nFontes:\n- KLBN · 1T26 (data-base 31/03/2026) (${ZIP})`, 'concluida'),
+        );
+      const pilula = () => tela().querySelector('button.citation') as HTMLButtonElement;
+      const painel = () => tela().querySelector('app-citation-panel');
+
+      function clicarNaPilula() {
+        pilula().click();
+        fixture.detectChanges();
+      }
+
+      it('fechado: a pílula não preenche, e não há painel', () => {
+        comCitacao();
+
+        expect(painel()).toBeNull();
+        expect(pilula().getAttribute('aria-pressed')).toBe('false');
+        expect(pilula().classList).not.toContain('citation--open');
+      });
+
+      it('o clique abre o painel com a data-base, a origem e o link', () => {
+        comCitacao();
+
+        clicarNaPilula();
+
+        expect(pilula().getAttribute('aria-pressed')).toBe('true');
+        expect(pilula().classList).toContain('citation--open');
+        expect(painel()?.textContent).toContain('31/03/2026');
+        expect(painel()?.textContent).toContain('Base local (CVM)');
+        expect(painel()?.querySelector('a')?.getAttribute('href')).toBe(ZIP);
+      });
+
+      it('o segundo clique fecha', () => {
+        comCitacao();
+
+        clicarNaPilula();
+        clicarNaPilula();
+
+        expect(painel()).toBeNull();
+      });
+
+      it('o botão de fechar devolve o foco para a pílula', () => {
+        comCitacao();
+        tela().ownerDocument.body.appendChild(tela());
+        clicarNaPilula();
+
+        painel()?.querySelector<HTMLButtonElement>('button.close')?.click();
+        fixture.detectChanges();
+
+        expect(painel()).toBeNull();
+        expect(tela().ownerDocument.activeElement).toBe(pilula());
+      });
     });
 
     it('não mostra a seção de citações quando a resposta não tem fontes', () => {
@@ -223,10 +278,10 @@ describe('Chat', () => {
       const texto = `Corpo.\n\nFontes:\n- KLBN · 1T26 (data-base 31/03/2026) (${ZIP})`;
 
       mostrar(pergunta, resposta(texto, 'revelando'));
-      expect(tela().querySelector('a.citation')).toBeNull();
+      expect(tela().querySelector('button.citation')).toBeNull();
 
       mostrar(pergunta, resposta(texto, 'concluida'));
-      expect(tela().querySelector('a.citation')).not.toBeNull();
+      expect(tela().querySelector('button.citation')).not.toBeNull();
     });
 
     it('a mensagem de erro é anunciada como alerta', () => {

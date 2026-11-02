@@ -1,0 +1,38 @@
+<div class="heading">
+  <h2 class="title">{{ citacao().label }}</h2>
+  <button
+    #botaoFechar
+    class="close"
+    type="button"
+    aria-label="Fechar detalhes da citação"
+    (click)="fechar.emit()"
+  >
+    <svg
+      aria-hidden="true"
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+    >
+      <path d="m5 5 10 10M15 5 5 15"></path>
+    </svg>
+  </button>
+</div>
+
+<dl class="details">
+  <div>
+    <dt>Data-base</dt>
+    <dd>{{ citacao().baseDate ?? 'Não se aplica: página da web, sem período contábil' }}</dd>
+  </div>
+  <div>
+    <dt>Origem</dt>
+    <dd>{{ citacao().origin }}</dd>
+  </div>
+</dl>
+
+<a class="link" [href]="citacao().url" target="_blank" rel="noopener noreferrer">
+  Abrir o documento original
+</a>

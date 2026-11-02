@@ -69,7 +69,7 @@ Fica abaixo da bolha, como `<button>` real, com pelo menos 44px de altura.
 - **Fechada:** fundo transparente, borda e texto em `--color-accent`, sem animação.
 - **Aberta:** fundo `--color-accent`, texto `--color-on-accent`, `aria-pressed="true"`.
 
-Abre um painel com data-base, origem, trecho e link para o documento original. O painel fecha com botão e com Esc. Sem período, o número perde sentido: a data-base nunca fica de fora.
+Abre um painel com data-base, origem e link para o documento original. O painel fecha com botão e com Esc. Sem período, o número perde sentido: a data-base nunca fica de fora.
 
 ### Painel do pipeline
 

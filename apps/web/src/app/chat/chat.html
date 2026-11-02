@@ -56,10 +56,16 @@
             <ul class="citations">
               @for (citacao of mensagem.citacoes; track citacao.url + citacao.label) {
               <li>
-                <a class="citation" [href]="citacao.url" target="_blank" rel="noopener noreferrer">
+                <button
+                  class="citation"
+                  type="button"
+                  [class.citation--open]="estaAberta(citacao)"
+                  [attr.aria-pressed]="estaAberta(citacao)"
+                  (click)="alternarCitacao(citacao, $event)"
+                >
                   <span>{{ citacao.label }}</span>
                   <span class="citation-origin">{{ citacao.origin }}</span>
-                </a>
+                </button>
               </li>
               }
             </ul>
@@ -86,5 +92,8 @@
       <button class="send" type="submit" [disabled]="!podeEnviar()">Enviar</button>
     </form>
   </div>
+  @if (citacaoAberta(); as citacao) {
+  <app-citation-panel class="citation-panel" [citacao]="citacao" (fechar)="fecharCitacao()" />
+  }
   <app-graph-panel class="pipeline" />
 </div>
