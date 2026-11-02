@@ -83,7 +83,15 @@ describe('POST /api/chat', () => {
       {
         type: 'retrieve',
         documents: [
-          { origem: 'cvm', rotulo: 'VALE 3T25', sourceUrl: documentoCvm.sourceUrl, distance: 0.1 },
+          {
+            origem: 'cvm',
+            rotulo: 'VALE 3T25',
+            sourceUrl: documentoCvm.sourceUrl,
+            distance: 0.1,
+            companyName: 'Vale S.A.',
+            period: '3T25',
+            periodEnd: '2025-09-30',
+          },
         ],
       },
       { type: 'grade', sufficient: false, missingAspects: ['motivo da queda'], iterations: 1 },
@@ -91,12 +99,21 @@ describe('POST /api/chat', () => {
       {
         type: 'retrieve',
         documents: [
-          { origem: 'cvm', rotulo: 'VALE 3T25', sourceUrl: documentoCvm.sourceUrl, distance: 0.1 },
+          {
+            origem: 'cvm',
+            rotulo: 'VALE 3T25',
+            sourceUrl: documentoCvm.sourceUrl,
+            distance: 0.1,
+            companyName: 'Vale S.A.',
+            period: '3T25',
+            periodEnd: '2025-09-30',
+          },
           {
             origem: 'web',
             rotulo: 'Vale explica queda da receita',
             sourceUrl: documentoWeb.sourceUrl,
             distance: 0.2,
+            fetchedAt: '2026-10-20T10:00:00.000Z',
           },
         ],
       },

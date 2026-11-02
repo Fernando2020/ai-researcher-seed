@@ -1,21 +1,5 @@
 import type { RetrievedDoc } from '@hero/agent';
-
-// O que a interface precisa pra mostrar um documento no painel do grafo — não o parágrafo
-// inteiro nem o embedding, que só pesariam no stream.
-export interface DocumentoResumido {
-  origem: 'cvm' | 'web';
-  rotulo: string;
-  sourceUrl: string;
-  distance: number;
-}
-
-// Um evento por nó concluído. O campo `type` diz qual nó terminou, e o resto é o que mudou.
-export type ChatEvent =
-  | { type: 'retrieve'; documents: DocumentoResumido[] }
-  | { type: 'grade'; sufficient: boolean; missingAspects: string[]; iterations: number }
-  | { type: 'webSearch' }
-  | { type: 'answer'; response: string }
-  | { type: 'error'; message: string };
+import type { ChatEvent, DocumentoResumido } from '@hero/contracts';
 
 // O que cada nó devolve no `stream({ streamMode: 'updates' })`: só os campos que ele mudou.
 export interface GraphUpdate {
@@ -29,13 +13,21 @@ export interface GraphUpdate {
 // Cada chunk do stream é `{ nomeDoNo: update }`.
 export type GraphChunk = Record<string, GraphUpdate | null | undefined>;
 
+// O que a interface precisa pra mostrar e citar um documento — não o parágrafo inteiro nem o
+// embedding, que só pesariam no stream.
 function resumirDocumento(doc: RetrievedDoc): DocumentoResumido {
-  return {
-    origem: doc.origem,
-    rotulo: doc.origem === 'cvm' ? `${doc.ticker} ${doc.period}` : doc.title,
-    sourceUrl: doc.sourceUrl,
-    distance: doc.distance,
-  };
+  const base = { sourceUrl: doc.sourceUrl, distance: doc.distance };
+  if (doc.origem === 'cvm') {
+    return {
+      ...base,
+      origem: 'cvm',
+      rotulo: `${doc.ticker} ${doc.period}`,
+      companyName: doc.companyName,
+      period: doc.period,
+      periodEnd: doc.periodEnd,
+    };
+  }
+  return { ...base, origem: 'web', rotulo: doc.title, fetchedAt: doc.fetchedAt.toISOString() };
 }
 
 // Traduz o stream do grafo em eventos tipados. Guarda um único dado entre chunks: o total de

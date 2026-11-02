@@ -1,8 +1,9 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { chatRequestSchema } from '@hero/contracts';
+import type { ChatEvent } from '@hero/contracts';
 import { ChatIndisponivelError } from '../errors.js';
 import { paraEventos } from './chat-event.js';
-import type { ChatEvent, GraphChunk } from './chat-event.js';
+import type { GraphChunk } from './chat-event.js';
 
 // Só o método que a rota usa. O grafo real do LangGraph satisfaz esta interface sem adaptador;
 // nos testes, um objeto com um `stream` fake basta — sem LLM, sem Postgres.
